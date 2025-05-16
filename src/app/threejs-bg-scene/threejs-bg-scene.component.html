@@ -1,0 +1,21 @@
+<p>threejs-bg-scene works!</p>
+
+<!-- <div class="border w-[100vw] h-[100vh]">
+  <div #rendererContainer></div>
+-->
+    <button
+    (click)="handlePlanetClick()"
+    [disabled]="isTransitioning"
+    class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+  >
+    {{ isTransitioning ? 'Transitioning...' : 'View Planet' }}
+  </button>
+
+  <div class="content-container">
+
+  <div #mount class="three-container"></div>
+</div>
+<!-- <div class="content-container">
+
+  <div #rendererContainer class="three-container"></div>
+</div> -->
