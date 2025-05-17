@@ -44,11 +44,13 @@ export class ThreejsBgSceneComponent implements OnInit, OnDestroy {
     this.createRenderer();
     this.setOrbitControls();
     this.addBackground();
+    // this.addGradientSkybox();
     this.addAmbientLight();
     this.addPointLight();
     this.addPlanets();
     this.addStars();
     this.animateScene();
+    this.createSpaceCloud();
 
     // original resize
     // const handleResize = () => {
@@ -78,7 +80,7 @@ export class ThreejsBgSceneComponent implements OnInit, OnDestroy {
   }
 
   createRenderer() {
-    this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true  });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.mount.nativeElement.appendChild(this.renderer.domElement);
@@ -100,9 +102,71 @@ export class ThreejsBgSceneComponent implements OnInit, OnDestroy {
         gradient.addColorStop(1, '#000046');
         this.renderer!.setClearColor('gradient');
     } else {
-        this.renderer!.setClearColor('#000006'); // general background of space
+        this.renderer!.setClearColor('#0000FF00'); // general background of space
     }
   }
+  
+  // private addGradientSkybox(): void {
+  //   const skyboxSize = 2000; // Make it very large to appear infinitely far
+
+  //   const materialArray = [];
+  //   materialArray.push(new THREE.MeshBasicMaterial({ color: 0xFF0000, side: THREE.BackSide })); // Right
+  //   materialArray.push(new THREE.MeshBasicMaterial({ color: 0x004600, side: THREE.BackSide })); // Left
+  //   materialArray.push(new THREE.MeshBasicMaterial({ color: 0x000046, side: THREE.BackSide })); // Top (darker blue)
+  //   materialArray.push(new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.BackSide })); // Bottom (black)
+  //   materialArray.push(new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.BackSide })); // Front
+  //   materialArray.push(new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.BackSide })); // Back
+
+  //   const skyboxGeo = new THREE.BoxGeometry(skyboxSize, skyboxSize, skyboxSize);
+  //   const skybox = new THREE.Mesh(skyboxGeo, materialArray);
+  //   this.scene!.add(skybox);
+  // }
+
+  // private async addGradientSkybox(): Promise<void> {
+  //   const skyboxSize = 500;
+
+  //   const textureLoader = new THREE.TextureLoader();
+  //   const placeholderTexture = new THREE.Texture(); // For sides without gradient
+
+  //   const materialArray = [];
+  //   for (let i = 0; i < 6; i++) {
+  //     materialArray.push(new THREE.MeshBasicMaterial({ map: placeholderTexture, side: THREE.BackSide }));
+  //   }
+
+  //   // Create a canvas for the top gradient
+  //   const topCanvas = document.createElement('canvas');
+  //   const topCtx = topCanvas.getContext('2d');
+  //   const gradientHeight = 128; // Height of the gradient on the texture
+  //   topCanvas.width = 256; // Width of the texture
+  //   topCanvas.height = gradientHeight;
+  //   if (topCtx) {
+  //     const gradientTop = topCtx.createLinearGradient(0, 0, 0, gradientHeight);
+  //     gradientTop.addColorStop(0, '#000003'); // Darker blue at the top
+  //     gradientTop.addColorStop(1, '#000000'); // Black towards the middle
+  //     topCtx.fillStyle = gradientTop;
+  //     topCtx.fillRect(0, 0, topCanvas.width, topCanvas.height);
+  //     materialArray[2].map = new THREE.CanvasTexture(topCanvas); // Top face (index 2)
+  //   }
+
+  //   // Create a canvas for the bottom gradient
+  //   const bottomCanvas = document.createElement('canvas');
+  //   const bottomCtx = bottomCanvas.getContext('2d');
+  //   bottomCanvas.width = 256;
+  //   bottomCanvas.height = gradientHeight;
+  //   if (bottomCtx) {
+  //     const gradientBottom = bottomCtx.createLinearGradient(0, 0, 0, gradientHeight);
+  //     gradientBottom.addColorStop(0, '#000000'); // Black towards the middle
+  //     gradientBottom.addColorStop(1, '#000000'); // Black at the bottom (adjust as needed)
+  //     bottomCtx.fillStyle = gradientBottom;
+  //     bottomCtx.fillRect(0, 0, bottomCanvas.width, bottomCanvas.height);
+  //     materialArray[3].map = new THREE.CanvasTexture(bottomCanvas); // Bottom face (index 3)
+  //   }
+
+  //   const skyboxGeo = new THREE.BoxGeometry(skyboxSize, skyboxSize, skyboxSize);
+  //   const skybox = new THREE.Mesh(skyboxGeo, materialArray);
+  //   this.scene!.add(skybox);
+  // }
+
   addAmbientLight() {
     const ambientLight = new THREE.AmbientLight(0x404040);
     this.scene!.add(ambientLight);
@@ -114,30 +178,75 @@ export class ThreejsBgSceneComponent implements OnInit, OnDestroy {
     this.scene!.add(pointLight);
   }
 
-  addStars() {
-    const starCount = 2000;
+  // Basic add stars as points
+  // addStars() {
+  //   const starCount = 20000;
+  //   const starVertices = [];
+
+  //   for (let i = 0; i < starCount; i++) {
+  //     const x = (Math.random() - 0.5) * 2000;
+  //     const y = (Math.random() - 0.5) * 2000;
+  //     const z = (Math.random() - 0.5) * 2000; // depth
+  //     starVertices.push(x, y, z);
+  //   }
+
+  //   const starsGeometry = new THREE.BufferGeometry();
+  //   starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+
+  //   const starsMaterial = new THREE.PointsMaterial({
+  //       color: 0xaaaaaa,
+  //       size: 2,
+  //       sizeAttenuation: true,
+  //   });
+
+  //   const stars = new THREE.Points(starsGeometry, starsMaterial);
+  //   this.scene!.add(stars);
+  // }
+
+  // more enhanced add stars with png texture and glow
+  private addStars(): void {
+    const starCount = 10000;
     const starVertices = [];
+    const starColors = []; // For individual star colors
+    const starSizes = [];
+
+    const color = new THREE.Color();
 
     for (let i = 0; i < starCount; i++) {
       const x = (Math.random() - 0.5) * 2000;
       const y = (Math.random() - 0.5) * 2000;
-      const z = (Math.random() - 0.5) * 2000; // depth
+      const z = (Math.random() - 0.5) * 2000;
       starVertices.push(x, y, z);
+
+      color.setHSL(Math.random(), 1.0, Math.random() * 0.5 + 0.5); // Vary star colors
+      starColors.push(color.r, color.g, color.b);
+
+      starSizes.push(Math.random() * 2 + 1); // Vary star sizes
     }
 
     const starsGeometry = new THREE.BufferGeometry();
     starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+    starsGeometry.setAttribute('color', new THREE.Float32BufferAttribute(starColors, 3));
+    starsGeometry.setAttribute('size', new THREE.Float32BufferAttribute(starSizes, 1));
+
+    const starTexture = new THREE.TextureLoader().load('star-glow-2.png'); // Create a soft, circular glow texture
 
     const starsMaterial = new THREE.PointsMaterial({
-        color: 0xaaaaaa,
-        size: 2,
-        sizeAttenuation: true,
+      map: starTexture,
+    size: 20,                           // Adjust base size
+      blending: THREE.AdditiveBlending, // Creates a glow effect
+      transparent: true,
+      alphaTest: 0.06,                  // Helps with sharp edges in the texture
+      sizeAttenuation: true,
+      vertexColors: true,               // Use the color attribute
+      fog: true
     });
 
     const stars = new THREE.Points(starsGeometry, starsMaterial);
     this.scene!.add(stars);
   }
 
+  // basic material add planets
   addPlanets() {                                    // [x, y, z] - x = 5 left , y = 5 up, z = -5 out
     const planet1 = this.createPlanet(1, '#00ffff', [4, 0, 0]);
     const planet2 = this.createPlanet(1.5, '#ff00ff', [-4, 0, 0]);
@@ -146,20 +255,66 @@ export class ThreejsBgSceneComponent implements OnInit, OnDestroy {
     this.scene!.add(planet1, planet2, planet3);
   }
 
-  createPlanet(radius: number, color: string, position: [number, number, number]): THREE.Mesh {
-    const geometry = new THREE.SphereGeometry(radius, 32, 32);
-    const material = new THREE.MeshStandardMaterial({
-      color: color,
-      emissive: color,
-      emissiveIntensity: 0.5,     // brightness of planet
-      roughness: 0.2,             // affects shine
-      metalness: 0.1,             // level of shine
-      wireframe: true,
-    });
-    const planet = new THREE.Mesh(geometry, material);
-    planet.position.set(...position);
-    return planet;
-  }
+  // createPlanet(radius: number, color: string, position: [number, number, number]): THREE.Mesh {
+  //   const geometry = new THREE.SphereGeometry(radius, 32, 32);
+  //   const material = new THREE.MeshStandardMaterial({
+  //     color: color,
+  //     emissive: color,
+  //     emissiveIntensity: 0.5,     // brightness of planet
+  //     roughness: 0.2,             // affects shine
+  //     metalness: 0.1,             // level of shine
+  //     wireframe: true,
+  //   });
+  //   const planet = new THREE.Mesh(geometry, material);
+  //   planet.position.set(...position);
+  //   return planet;
+  // }
+
+createPlanet(radius: number, color: string, position: [number, number, number]): THREE.Mesh {
+  const geometry = new THREE.SphereGeometry(radius, 32, 32);
+  const textureLoader = new THREE.TextureLoader();
+  const planetTexture = textureLoader.load('grad-1.png');
+  const material = new THREE.MeshToonMaterial({
+    color: color,
+    emissive: color,
+    emissiveIntensity: 0.5,
+    wireframe: false,
+    // gradientMap: this.createToonGradientTexture(),
+    map: planetTexture, // Add the texture here
+    // You can optionally add a "toon shading" texture (gradient map) here
+    // gradientMap: this.createToonGradientTexture(),
+  });
+  const planet = new THREE.Mesh(geometry, material);
+  planet.position.set(...position);
+  return planet;
+}
+
+// Optional: Function to create a basic toon gradient texture
+createToonGradientTexture(): THREE.DataTexture {
+  // const size = 16;
+  // const data = new Uint8Array(size);
+
+  // for (let i = 0; i < size; i++) {
+  //   const v = Math.floor((i / size) * 255);
+  //   data[i] = v;
+  // }
+
+  // const texture = new THREE.DataTexture(data, size, 1, THREE.RedFormat, THREE.UnsignedByteType);
+  // texture.needsUpdate = true;
+  // return texture;
+  const size = 3;
+  const data = new Uint8Array(size);
+
+  data[0] = 0;   // Dark
+  data[1] = 128; // Medium
+  data[2] = 255; // Light
+
+  const texture = new THREE.DataTexture(data, size, 1, THREE.RedFormat, THREE.UnsignedByteType);
+  texture.needsUpdate = true;
+  texture.minFilter = THREE.NearestFilter; // Important for sharp steps
+  texture.magFilter = THREE.NearestFilter;
+  return texture;
+}
 
   animateScene = () => {
     if (!this.scene || !this.camera || !this.renderer) return;
@@ -170,6 +325,11 @@ export class ThreejsBgSceneComponent implements OnInit, OnDestroy {
       planet.rotation.y += 0.005;
       planet.rotation.x += 0.005;
     });
+
+    // Optionally update particle positions or the cloud's rotation here
+    if (this.cloudParticles) {
+      this.cloudParticles.rotation.y += 0.0005;
+    }
 
     this.controls?.update();
     this.renderer.render(this.scene, this.camera);
@@ -235,14 +395,14 @@ export class ThreejsBgSceneComponent implements OnInit, OnDestroy {
     
   }
 
-    currentPlanetIndex = -1;
+  currentPlanetIndex = -1;
   isTransitioning = false;
 
-  initialCameraPosition = new THREE.Vector3(0, 5, 15);
+  initialCameraPosition = new THREE.Vector3(0, 5, 25);
   targetPositions = [
-    new THREE.Vector3(4, 0, 2),
-    new THREE.Vector3(-4, 0, 2),
-    new THREE.Vector3(0, 4, 2),
+    new THREE.Vector3(12, 0, -1),
+    new THREE.Vector3(-8, 4, -2),
+    new THREE.Vector3(0, 12, 8),
     new THREE.Vector3(0, 5, 15)
   ];
   targetLookAt = [
@@ -251,5 +411,185 @@ export class ThreejsBgSceneComponent implements OnInit, OnDestroy {
     new THREE.Vector3(0, 0, 0),
     new THREE.Vector3(0, 0, 0)
   ];
+
+  cloudParticles!: THREE.Points;
+  cloudMaterial!: THREE.ShaderMaterial;
+  cloudGeometry!: THREE.BufferGeometry;
+
+
+
+  async loadGradientTexture(): Promise<any> {
+  const textureLoader = new THREE.TextureLoader();
+  try {
+    // Assuming you have an image file named 'teal-purple-blue-gradient.png' in your assets
+    const texture = await textureLoader.loadAsync('teal-purple-blue-gradient-trans-2.png');
+    return texture;
+  } catch (error) {
+    console.error('Error loading gradient texture:', error);
+    return null;
+  }
+}
+
+  async createSpaceCloud() {
+    const numParticles = 10; // Increase for a denser cloud
+    this.cloudGeometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(numParticles * 3);
+    const colors = new Float32Array(numParticles * 3);
+    const sizes = new Float32Array(numParticles);
+    const alphas = new Float32Array(numParticles); // For individual particle opacity
+
+    const mainColor = new THREE.Color(0xffffff); // Base color
+    const cloudCenter = new THREE.Vector3(0, 0, 0); // Center of the cloud
+    const cloudRadius = 15; // Overall size of the cloud
+
+    for (let i = 0; i < numParticles; i++) {
+      const i3 = i * 3;
+
+      // 1. More Clustered Particle Distribution (Example: Spherical with some variation)
+      const p = new THREE.Vector3(
+        Math.random() * 2 - 1,
+        Math.random() * 2 - 1,
+        Math.random() * 2 - 1
+      ).normalize().multiplyScalar(cloudRadius * Math.random()); // Vary distance from center
+
+      positions[i3] = p.x;
+      positions[i3 + 1] = p.y;
+      positions[i3 + 2] = p.z;
+
+      // 2. Particle Size Variation
+      sizes[i] = Math.random() * 2 + 10.5;    // 2 + 0.5 OG
+
+      // 3. Initial Color (can be influenced by position later in the shader)
+      mainColor.setHSL(Math.random() * 0.3 + 0.5, Math.random() * 0.5 + 0.5, Math.random() * 0.5 + 0.5); // Teal-Purple-Blue range
+      colors[i3] = mainColor.r;
+      colors[i3 + 1] = mainColor.g;
+      colors[i3 + 2] = mainColor.b;
+
+      // 4. Initial Alpha (can be modulated by texture in the shader)
+      alphas[i] = Math.random() * 0.8 + 10.2; // Some variation in base opacity        // ALSO BRIGHTNESS OF CLOUD 1.2 OG
+    }
+
+    this.cloudGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    this.cloudGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    this.cloudGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+    this.cloudGeometry.setAttribute('alpha', new THREE.BufferAttribute(alphas, 1)); // Add alpha attribute
+
+    const gradientTexture = await this.loadGradientTexture();
+
+    this.cloudMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        pointTexture: { value: gradientTexture },
+      },
+      vertexShader: `
+        attribute float size;
+        attribute vec3 color;
+        attribute float alpha;
+        varying vec3 vColor;
+        varying float vAlpha;
+
+        void main() {
+          vColor = color;
+          vAlpha = alpha;
+          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+          gl_PointSize = size * (300.0 / -mvPosition.z);
+          gl_Position = projectionMatrix * mvPosition;
+        }
+      `,
+      fragmentShader: `
+        uniform sampler2D pointTexture;
+        varying vec3 vColor;
+        varying float vAlpha;
+
+        void main() {
+          vec4 textureColor = texture2D(pointTexture, gl_PointCoord);
+          gl_FragColor = textureColor;
+          gl_FragColor.rgb *= vColor;
+          gl_FragColor.a *= vAlpha; // Apply individual particle alpha
+
+          // Use the brightness of the texture to fade out edges
+          float brightness = dot(textureColor.rgb, vec3(0.299, 0.587, 0.114));
+          gl_FragColor.a *= smoothstep(0.1, 0.8, brightness); // Adjust thresholds for fade
+        }
+      `,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      transparent: true,
+    });
+
+    this.cloudParticles = new THREE.Points(this.cloudGeometry, this.cloudMaterial);
+    this.scene!.add(this.cloudParticles);
+
+    // const numParticles = 100; // Adjust for density
+    // this.cloudGeometry = new THREE.BufferGeometry();
+    // const positions = new Float32Array(numParticles * 3);
+    // const colors = new Float32Array(numParticles * 3);
+    // const sizes = new Float32Array(numParticles);
+
+    // const color = new THREE.Color();
+
+    // // Distribute particles randomly within a volume (e.g., a sphere or a box)
+    // for (let i = 0; i < numParticles; i++) {
+    //   const i3 = i * 3;
+
+    //   // Example: Random position within a sphere of radius 20
+    //   const x = (Math.random() * 2 - 1) * 20;
+    //   const y = (Math.random() * 2 - 1) * 20;
+    //   const z = (Math.random() * 2 - 1) * 20;
+
+    //   positions[i3] = x;
+    //   positions[i3 + 1] = y;
+    //   positions[i3 + 2] = z;
+
+    //   // Initial color (will be overridden by texture in shader)
+    //   color.setHSL(Math.random(), 1.0, 0.5);
+    //   colors[i3] = color.r;
+    //   colors[i3 + 1] = color.g;
+    //   colors[i3 + 2] = color.b;
+
+    //   sizes[i] = Math.random() * 2 + 0.5; // Random particle sizes
+    // }
+
+    // this.cloudGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    // this.cloudGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    // this.cloudGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+    // const gradientTexture = await this.loadGradientTexture();
+
+    // this.cloudMaterial = new THREE.ShaderMaterial({
+    //   uniforms: {
+    //     pointTexture: { value: gradientTexture },
+    //   },
+    //   vertexShader: `
+    //     attribute float size;
+    //     attribute vec3 color;
+    //     varying vec3 vColor;
+
+    //     void main() {
+    //       vColor = color;
+    //       vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+    //       gl_PointSize = size * (300.0 / -mvPosition.z); // Adjust size based on depth
+    //       gl_Position = projectionMatrix * mvPosition;
+    //     }
+    //   `,
+    //   fragmentShader: `
+    //     uniform sampler2D pointTexture;
+    //     varying vec3 vColor;
+
+    //     void main() {
+    //       gl_FragColor = texture2D(pointTexture, gl_PointCoord);
+    //       gl_FragColor.rgb *= vColor; // Apply initial particle color
+    //       gl_FragColor.a = 0.8; // Adjust opacity
+    //     }
+    //   `,
+    //   blending: THREE.AdditiveBlending,
+    //   depthWrite: false,
+    //   transparent: true,
+    // });
+
+    // this.cloudParticles = new THREE.Points(this.cloudGeometry, this.cloudMaterial);
+    // this.scene!.add(this.cloudParticles);
+
+    // // You might want to animate the cloud's position or the particles over time
+  }
 
 }
