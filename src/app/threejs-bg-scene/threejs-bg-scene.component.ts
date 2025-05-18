@@ -194,10 +194,8 @@ export class ThreejsBgSceneComponent implements OnInit, OnDestroy {
   addPlanets() {                                    // [x, y, z] - x = 5 left , y = 5 up, z = -5 out
     const planet1 = this.createPlanet(1, '#00ffff', [4, 0, 0], 'planet-textures/dope-planet-texture-11.png');
     const planet2 = this.createPlanet(1.5,  '#ff00ff', [-4, 0, 0], 'planet-textures/dope-planet-texture-15.png');
-    const planet3 = this.createPlanet(2, 'yellow', [0, 5, 0], 'planet-textures/dope-planet-texture-5.png');
+    const planet3 = this.createPlanet(3, 'yellow', [0, 5, 0], 'planet-textures/dope-planet-texture-5.png');
     this.planets = [planet1, planet2, planet3];
-    console.log(planet1);
-    
     this.scene!.add(planet1, planet2, planet3);
   }
 
@@ -389,7 +387,7 @@ createToonGradientTexture(): THREE.DataTexture {
 }
 
   async createSpaceCloud() {
-    const numParticles = 10; // Increase for a denser cloud
+    const numParticles = 80; // Increase for a denser cloud
     this.cloudGeometry = new THREE.BufferGeometry();
     const positions = new Float32Array(numParticles * 3);
     const colors = new Float32Array(numParticles * 3);
@@ -398,7 +396,7 @@ createToonGradientTexture(): THREE.DataTexture {
 
     const mainColor = new THREE.Color(0xffffff); // Base color
     const cloudCenter = new THREE.Vector3(0, 0, 0); // Center of the cloud
-    const cloudRadius = 15; // Overall size of the cloud
+    const cloudRadius = 5; // Overall size of the cloud
 
     for (let i = 0; i < numParticles; i++) {
       const i3 = i * 3;
@@ -415,7 +413,7 @@ createToonGradientTexture(): THREE.DataTexture {
       positions[i3 + 2] = p.z;
 
       // 2. Particle Size Variation
-      sizes[i] = Math.random() * 2 + 10.5;    // 2 + 0.5 OG
+      sizes[i] = Math.random() * 2 + 20;    // 2 + 0.5 OG
 
       // 3. Initial Color (can be influenced by position later in the shader)
       mainColor.setHSL(Math.random() * 0.3 + 0.5, Math.random() * 0.5 + 0.5, Math.random() * 0.5 + 0.5); // Teal-Purple-Blue range
@@ -477,77 +475,7 @@ createToonGradientTexture(): THREE.DataTexture {
     this.cloudParticles = new THREE.Points(this.cloudGeometry, this.cloudMaterial);
     this.scene!.add(this.cloudParticles);
 
-    // const numParticles = 100; // Adjust for density
-    // this.cloudGeometry = new THREE.BufferGeometry();
-    // const positions = new Float32Array(numParticles * 3);
-    // const colors = new Float32Array(numParticles * 3);
-    // const sizes = new Float32Array(numParticles);
-
-    // const color = new THREE.Color();
-
-    // // Distribute particles randomly within a volume (e.g., a sphere or a box)
-    // for (let i = 0; i < numParticles; i++) {
-    //   const i3 = i * 3;
-
-    //   // Example: Random position within a sphere of radius 20
-    //   const x = (Math.random() * 2 - 1) * 20;
-    //   const y = (Math.random() * 2 - 1) * 20;
-    //   const z = (Math.random() * 2 - 1) * 20;
-
-    //   positions[i3] = x;
-    //   positions[i3 + 1] = y;
-    //   positions[i3 + 2] = z;
-
-    //   // Initial color (will be overridden by texture in shader)
-    //   color.setHSL(Math.random(), 1.0, 0.5);
-    //   colors[i3] = color.r;
-    //   colors[i3 + 1] = color.g;
-    //   colors[i3 + 2] = color.b;
-
-    //   sizes[i] = Math.random() * 2 + 0.5; // Random particle sizes
-    // }
-
-    // this.cloudGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    // this.cloudGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    // this.cloudGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
-
-    // const gradientTexture = await this.loadGradientTexture();
-
-    // this.cloudMaterial = new THREE.ShaderMaterial({
-    //   uniforms: {
-    //     pointTexture: { value: gradientTexture },
-    //   },
-    //   vertexShader: `
-    //     attribute float size;
-    //     attribute vec3 color;
-    //     varying vec3 vColor;
-
-    //     void main() {
-    //       vColor = color;
-    //       vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-    //       gl_PointSize = size * (300.0 / -mvPosition.z); // Adjust size based on depth
-    //       gl_Position = projectionMatrix * mvPosition;
-    //     }
-    //   `,
-    //   fragmentShader: `
-    //     uniform sampler2D pointTexture;
-    //     varying vec3 vColor;
-
-    //     void main() {
-    //       gl_FragColor = texture2D(pointTexture, gl_PointCoord);
-    //       gl_FragColor.rgb *= vColor; // Apply initial particle color
-    //       gl_FragColor.a = 0.8; // Adjust opacity
-    //     }
-    //   `,
-    //   blending: THREE.AdditiveBlending,
-    //   depthWrite: false,
-    //   transparent: true,
-    // });
-
-    // this.cloudParticles = new THREE.Points(this.cloudGeometry, this.cloudMaterial);
-    // this.scene!.add(this.cloudParticles);
-
-    // // You might want to animate the cloud's position or the particles over time
+    // You might want to animate the cloud's position or the particles over time
   }
 
 }
