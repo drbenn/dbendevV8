@@ -44,10 +44,10 @@ export class ThreejsBgSceneComponent implements OnInit, OnDestroy {
     this.createRenderer();
     this.setOrbitControls();
     this.addBackground();
-    // this.addGradientSkybox();
     this.addAmbientLight();
     this.addPointLight();
     this.addPlanets();
+    this.brightenPlanetsWithAmbientLight();
     this.addStars();
     this.animateScene();
     this.createSpaceCloud();
@@ -105,67 +105,11 @@ export class ThreejsBgSceneComponent implements OnInit, OnDestroy {
         this.renderer!.setClearColor('#0000FF00'); // general background of space
     }
   }
-  
-  // private addGradientSkybox(): void {
-  //   const skyboxSize = 2000; // Make it very large to appear infinitely far
 
-  //   const materialArray = [];
-  //   materialArray.push(new THREE.MeshBasicMaterial({ color: 0xFF0000, side: THREE.BackSide })); // Right
-  //   materialArray.push(new THREE.MeshBasicMaterial({ color: 0x004600, side: THREE.BackSide })); // Left
-  //   materialArray.push(new THREE.MeshBasicMaterial({ color: 0x000046, side: THREE.BackSide })); // Top (darker blue)
-  //   materialArray.push(new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.BackSide })); // Bottom (black)
-  //   materialArray.push(new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.BackSide })); // Front
-  //   materialArray.push(new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.BackSide })); // Back
-
-  //   const skyboxGeo = new THREE.BoxGeometry(skyboxSize, skyboxSize, skyboxSize);
-  //   const skybox = new THREE.Mesh(skyboxGeo, materialArray);
-  //   this.scene!.add(skybox);
-  // }
-
-  // private async addGradientSkybox(): Promise<void> {
-  //   const skyboxSize = 500;
-
-  //   const textureLoader = new THREE.TextureLoader();
-  //   const placeholderTexture = new THREE.Texture(); // For sides without gradient
-
-  //   const materialArray = [];
-  //   for (let i = 0; i < 6; i++) {
-  //     materialArray.push(new THREE.MeshBasicMaterial({ map: placeholderTexture, side: THREE.BackSide }));
-  //   }
-
-  //   // Create a canvas for the top gradient
-  //   const topCanvas = document.createElement('canvas');
-  //   const topCtx = topCanvas.getContext('2d');
-  //   const gradientHeight = 128; // Height of the gradient on the texture
-  //   topCanvas.width = 256; // Width of the texture
-  //   topCanvas.height = gradientHeight;
-  //   if (topCtx) {
-  //     const gradientTop = topCtx.createLinearGradient(0, 0, 0, gradientHeight);
-  //     gradientTop.addColorStop(0, '#000003'); // Darker blue at the top
-  //     gradientTop.addColorStop(1, '#000000'); // Black towards the middle
-  //     topCtx.fillStyle = gradientTop;
-  //     topCtx.fillRect(0, 0, topCanvas.width, topCanvas.height);
-  //     materialArray[2].map = new THREE.CanvasTexture(topCanvas); // Top face (index 2)
-  //   }
-
-  //   // Create a canvas for the bottom gradient
-  //   const bottomCanvas = document.createElement('canvas');
-  //   const bottomCtx = bottomCanvas.getContext('2d');
-  //   bottomCanvas.width = 256;
-  //   bottomCanvas.height = gradientHeight;
-  //   if (bottomCtx) {
-  //     const gradientBottom = bottomCtx.createLinearGradient(0, 0, 0, gradientHeight);
-  //     gradientBottom.addColorStop(0, '#000000'); // Black towards the middle
-  //     gradientBottom.addColorStop(1, '#000000'); // Black at the bottom (adjust as needed)
-  //     bottomCtx.fillStyle = gradientBottom;
-  //     bottomCtx.fillRect(0, 0, bottomCanvas.width, bottomCanvas.height);
-  //     materialArray[3].map = new THREE.CanvasTexture(bottomCanvas); // Bottom face (index 3)
-  //   }
-
-  //   const skyboxGeo = new THREE.BoxGeometry(skyboxSize, skyboxSize, skyboxSize);
-  //   const skybox = new THREE.Mesh(skyboxGeo, materialArray);
-  //   this.scene!.add(skybox);
-  // }
+  brightenPlanetsWithAmbientLight(): void {
+    const ambientLight = new THREE.AmbientLight(0xffffff, 3);
+    this.scene!.add(ambientLight);
+  }
 
   addAmbientLight() {
     const ambientLight = new THREE.AmbientLight(0x404040);
@@ -248,46 +192,57 @@ export class ThreejsBgSceneComponent implements OnInit, OnDestroy {
 
   // basic material add planets
   addPlanets() {                                    // [x, y, z] - x = 5 left , y = 5 up, z = -5 out
-    const planet1 = this.createPlanet(1, '#00ffff', [4, 0, 0]);
-    const planet2 = this.createPlanet(1.5, '#ff00ff', [-4, 0, 0]);
-    const planet3 = this.createPlanet(2, 'yellow', [0, 5, 0]);
+    const planet1 = this.createPlanet(1, 20, 20, '#00ffff', [4, 0, 0], 'astroid0008.gif');
+    const planet2 = this.createPlanet(1.5, 10, 10, '#ff00ff', [-4, 0, 0], 'teal-purple-blue-gradient.png');
+    const planet3 = this.createPlanet(2, 5, 5, 'yellow', [0, 5, 0], 'astroid0008.gif');
     this.planets = [planet1, planet2, planet3];
+    console.log(planet1);
+    
     this.scene!.add(planet1, planet2, planet3);
   }
 
-  // createPlanet(radius: number, color: string, position: [number, number, number]): THREE.Mesh {
-  //   const geometry = new THREE.SphereGeometry(radius, 32, 32);
-  //   const material = new THREE.MeshStandardMaterial({
-  //     color: color,
-  //     emissive: color,
-  //     emissiveIntensity: 0.5,     // brightness of planet
-  //     roughness: 0.2,             // affects shine
-  //     metalness: 0.1,             // level of shine
-  //     wireframe: true,
-  //   });
-  //   const planet = new THREE.Mesh(geometry, material);
-  //   planet.position.set(...position);
-  //   return planet;
-  // }
+  createPlanet(radius: number,  widthSegments: number, heightSegments: number, color: string, position: [number, number, number], texturePath: string): THREE.Mesh {
+    const geometry = new THREE.SphereGeometry(radius, widthSegments, heightSegments);
 
-createPlanet(radius: number, color: string, position: [number, number, number]): THREE.Mesh {
-  const geometry = new THREE.SphereGeometry(radius, 32, 32);
-  const textureLoader = new THREE.TextureLoader();
-  const planetTexture = textureLoader.load('grad-1.png');
-  const material = new THREE.MeshToonMaterial({
-    color: color,
-    emissive: color,
-    emissiveIntensity: 0.5,
-    wireframe: false,
-    // gradientMap: this.createToonGradientTexture(),
-    map: planetTexture, // Add the texture here
-    // You can optionally add a "toon shading" texture (gradient map) here
-    // gradientMap: this.createToonGradientTexture(),
-  });
-  const planet = new THREE.Mesh(geometry, material);
-  planet.position.set(...position);
-  return planet;
-}
+      // Load the texture
+    const textureLoader = new THREE.TextureLoader();
+    const planetTexture = textureLoader.load(texturePath); // Load the texture from the path
+
+    const material = new THREE.MeshStandardMaterial({
+      // color: color,
+      // emissive: color,
+      emissiveIntensity: 0.5,     // brightness of planet
+      roughness: 0.2,             // affects shine
+      metalness: 0.1,             // level of shine
+      wireframe: false,
+      map: planetTexture
+    });
+    const planet = new THREE.Mesh(geometry, material);
+    planet.position.set(...position);
+
+
+    
+    return planet;
+  }
+
+// createPlanet(radius: number, color: string, position: [number, number, number]): THREE.Mesh {
+//   const geometry = new THREE.SphereGeometry(radius, 32, 32);
+//   const textureLoader = new THREE.TextureLoader();
+//   const planetTexture = textureLoader.load('grad-1.png');
+//   const material = new THREE.MeshToonMaterial({
+//     color: color,
+//     emissive: color,
+//     emissiveIntensity: 0.5,
+//     wireframe: false,
+//     // gradientMap: this.createToonGradientTexture(),
+//     map: planetTexture, // Add the texture here
+//     // You can optionally add a "toon shading" texture (gradient map) here
+//     // gradientMap: this.createToonGradientTexture(),
+//   });
+//   const planet = new THREE.Mesh(geometry, material);
+//   planet.position.set(...position);
+//   return planet;
+// }
 
 // Optional: Function to create a basic toon gradient texture
 createToonGradientTexture(): THREE.DataTexture {
