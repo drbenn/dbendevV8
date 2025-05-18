@@ -272,6 +272,7 @@ createToonGradientTexture(): THREE.DataTexture {
   return texture;
 }
 
+  private cloudParticlesInitialDirection: boolean = true;
   animateScene = () => {
     if (!this.scene || !this.camera || !this.renderer) return;
 
@@ -284,7 +285,21 @@ createToonGradientTexture(): THREE.DataTexture {
 
     // Optionally update particle positions or the cloud's rotation here
     if (this.cloudParticles) {
-      this.cloudParticles.rotation.y += 0.0005;
+      if (this.cloudParticlesInitialDirection) {
+        this.cloudParticles.rotation.x += 0.00003;
+        this.cloudParticles.rotation.y += 0.00003;
+        this.cloudParticles.rotation.z += 0.00003;
+        if (this.cloudParticles.rotation.x > 0.004) {
+          this.cloudParticlesInitialDirection = false;
+        }
+      } else {
+        this.cloudParticles.rotation.x -= 0.00003;
+        this.cloudParticles.rotation.y -= 0.00003;
+        this.cloudParticles.rotation.z -= 0.00003;
+        if (this.cloudParticles.rotation.x < -0.004) {
+          this.cloudParticlesInitialDirection = true;
+        }
+      }    
     }
 
     this.controls?.update();
@@ -395,7 +410,7 @@ createToonGradientTexture(): THREE.DataTexture {
     const alphas = new Float32Array(numParticles); // For individual particle opacity
 
     const mainColor = new THREE.Color(0xffffff); // Base color
-    const cloudCenter = new THREE.Vector3(0, 0, 0); // Center of the cloud
+    const cloudCenter = new THREE.Vector3(20, -50, -50); // Center of the cloud
     const cloudRadius = 5; // Overall size of the cloud
 
     for (let i = 0; i < numParticles; i++) {
@@ -408,20 +423,22 @@ createToonGradientTexture(): THREE.DataTexture {
         Math.random() * 2 - 1
       ).normalize().multiplyScalar(cloudRadius * Math.random()); // Vary distance from center
 
-      positions[i3] = p.x;
-      positions[i3 + 1] = p.y;
-      positions[i3 + 2] = p.z;
 
-      // 2. Particle Size Variation
+      // 2. Apply the cloudCenter offset here
+      positions[i3] = p.x + cloudCenter.x;
+      positions[i3 + 1] = p.y + cloudCenter.y;
+      positions[i3 + 2] = p.z + cloudCenter.z;
+
+      // 3. Particle Size Variation
       sizes[i] = Math.random() * 2 + 20;    // 2 + 0.5 OG
 
-      // 3. Initial Color (can be influenced by position later in the shader)
+      // 4. Initial Color (can be influenced by position later in the shader)
       mainColor.setHSL(Math.random() * 0.3 + 0.5, Math.random() * 0.5 + 0.5, Math.random() * 0.5 + 0.5); // Teal-Purple-Blue range
       colors[i3] = mainColor.r;
       colors[i3 + 1] = mainColor.g;
       colors[i3 + 2] = mainColor.b;
 
-      // 4. Initial Alpha (can be modulated by texture in the shader)
+      // 5. Initial Alpha (can be modulated by texture in the shader)
       alphas[i] = Math.random() * 0.8 + 10.2; // Some variation in base opacity        // ALSO BRIGHTNESS OF CLOUD 1.2 OG
     }
 
