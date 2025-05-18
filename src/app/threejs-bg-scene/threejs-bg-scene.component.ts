@@ -192,9 +192,9 @@ export class ThreejsBgSceneComponent implements OnInit, OnDestroy {
 
   // basic material add planets
   addPlanets() {                                    // [x, y, z] - x = 5 left , y = 5 up, z = -5 out
-    const planet1 = this.createPlanet(1, '#00ffff', [4, 0, 0], 'planet-textures/dope-planet-texture-11.png');
-    const planet2 = this.createPlanet(1.5,  '#ff00ff', [-4, 0, 0], 'planet-textures/dope-planet-texture-15.png');
-    const planet3 = this.createPlanet(3, 'yellow', [0, 5, 0], 'planet-textures/dope-planet-texture-5.png');
+    const planet1 = this.createPlanet(1, '#00ffff', [4, 0, 0], 'planet-textures/dope-planet-texture-23.png');
+    const planet2 = this.createPlanet(1.5,  '#ff00ff', [-4, 0, 0], 'planet-textures/dope-planet-texture-7.png');
+    const planet3 = this.createPlanet(3, 'yellow', [0, 5, 0], 'planet-textures/purple-planet-texture-1.png');
     this.planets = [planet1, planet2, planet3];
     this.scene!.add(planet1, planet2, planet3);
   }
