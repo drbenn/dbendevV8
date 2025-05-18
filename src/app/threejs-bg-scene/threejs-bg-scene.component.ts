@@ -192,16 +192,19 @@ export class ThreejsBgSceneComponent implements OnInit, OnDestroy {
 
   // basic material add planets
   addPlanets() {                                    // [x, y, z] - x = 5 left , y = 5 up, z = -5 out
-    const planet1 = this.createPlanet(1, 20, 20, '#00ffff', [4, 0, 0], 'astroid0008.gif');
-    const planet2 = this.createPlanet(1.5, 10, 10, '#ff00ff', [-4, 0, 0], 'teal-purple-blue-gradient.png');
-    const planet3 = this.createPlanet(2, 5, 5, 'yellow', [0, 5, 0], 'astroid0008.gif');
+    const planet1 = this.createPlanet(1, '#00ffff', [4, 0, 0], 'planet-textures/dope-planet-texture-11.png');
+    const planet2 = this.createPlanet(1.5,  '#ff00ff', [-4, 0, 0], 'planet-textures/dope-planet-texture-15.png');
+    const planet3 = this.createPlanet(2, 'yellow', [0, 5, 0], 'planet-textures/dope-planet-texture-5.png');
     this.planets = [planet1, planet2, planet3];
     console.log(planet1);
     
     this.scene!.add(planet1, planet2, planet3);
   }
 
-  createPlanet(radius: number,  widthSegments: number, heightSegments: number, color: string, position: [number, number, number], texturePath: string): THREE.Mesh {
+  createPlanet(radius: number, color: string, position: [number, number, number], texturePath: string): THREE.Mesh {
+    // height and width segments provides the number of vertexes for the planet, less = chunkier, smooth is reach around 30
+    const heightSegments: number = 30;
+    const widthSegments: number = 30;
     const geometry = new THREE.SphereGeometry(radius, widthSegments, heightSegments);
 
       // Load the texture
