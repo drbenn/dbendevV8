@@ -32,7 +32,13 @@ export class ThreejsBgSceneComponent implements OnInit, OnDestroy {
   private renderer: THREE.WebGLRenderer | null = null;
   private controls: OrbitControls | null = null;
   private planets: THREE.Mesh[] = [];
+  private cloudParticles!: THREE.Points;
+  private cloudMaterial!: THREE.ShaderMaterial;
+  private cloudGeometry!: THREE.BufferGeometry;
   private animationFrameId: number | null = null;
+  private clock: THREE.Clock = new THREE.Clock();
+  private sun: THREE.Mesh | null = null; // Add this
+  private sunHaloMaterial: THREE.ShaderMaterial | null = null; // Add this
 
   constructor() {
     this.animateCamera = this.animateCamera.bind(this);
@@ -46,21 +52,19 @@ export class ThreejsBgSceneComponent implements OnInit, OnDestroy {
     this.addBackground();
     this.addAmbientLight();
     this.addPointLight();
-    this.addPlanets();
-    this.brightenPlanetsWithAmbientLight();
-    this.addStars();
-    this.animateScene();
-    this.createSpaceCloud();
+    // this.addPlanets();
+    // this.addStars();
+    const sunRadius: number = 8;
+    this.sun = this.addSun(sunRadius, [0, 0, 0]);
+    this.scene!.add(this.sun);
+    this.sunHaloMaterial = this.createSunHalo(sunRadius);
+    const sunHaloGeometry = new THREE.SphereGeometry(sunRadius * 1.5, 32, 32); // Make it larger than the sun
+    const sunHalo = new THREE.Mesh(sunHaloGeometry, this.sunHaloMaterial);
+    this.sun!.add(sunHalo); // Add the halo as a child of the sun
 
-    // original resize
-    // const handleResize = () => {
-    //     if (this.camera && this.renderer) {
-    //         this.camera.aspect = window.innerWidth / window.innerHeight;
-    //         this.camera.updateProjectionMatrix();
-    //         this.renderer.setSize(window.innerWidth, window.innerHeight);
-    //     }
-    // };
-    // window.addEventListener('resize', handleResize);
+    this.animateScene();
+    // this.createSpaceCloud();
+
   }
 
   ngOnDestroy(): void {
@@ -74,8 +78,202 @@ export class ThreejsBgSceneComponent implements OnInit, OnDestroy {
     this.controls?.dispose();
   }
 
+    private cloudParticlesInitialDirection: boolean = true;
+  animateScene = () => {
+    if (!this.scene || !this.camera || !this.renderer) return;
+
+
+    this.animationFrameId = requestAnimationFrame(this.animateScene);
+
+    this.planets.forEach(planet => {
+      planet.rotation.y += 0.005;
+      planet.rotation.x += 0.005;
+    });
+
+    
+    
+
+    // Optionally update particle positions or the cloud's rotation here
+    if (this.cloudParticles) {
+      if (this.cloudParticlesInitialDirection) {
+        this.cloudParticles.rotation.x += 0.00003;
+        this.cloudParticles.rotation.y += 0.00003;
+        this.cloudParticles.rotation.z += 0.00003;
+        if (this.cloudParticles.rotation.x > 0.004) {
+          this.cloudParticlesInitialDirection = false;
+        }
+      } else {
+        this.cloudParticles.rotation.x -= 0.00003;
+        this.cloudParticles.rotation.y -= 0.00003;
+        this.cloudParticles.rotation.z -= 0.00003;
+        if (this.cloudParticles.rotation.x < -0.004) {
+          this.cloudParticlesInitialDirection = true;
+        }
+      }    
+    }
+
+    if (this.sunHaloMaterial) {
+      this.sunHaloMaterial.uniforms['uTime'].value = this.clock.getElapsedTime();
+    }
+    const sunPulseSize: number = 0.005;           // 0.1 default, lower than that, smaller pulse
+    const sunPulseFrequency: number = 0.08       // 1.1 default, lower than that slower
+    this.sun!.scale.set(
+      1 + sunPulseSize * Math.sin(this.clock.getElapsedTime() * sunPulseFrequency),
+      1 + sunPulseSize * Math.sin(this.clock.getElapsedTime() * sunPulseFrequency),
+      1 + sunPulseSize * Math.sin(this.clock.getElapsedTime() * sunPulseFrequency)
+    );
+
+    this.controls?.update();
+    this.renderer!.render(this.scene!, this.camera!);
+  };
+
+
+
+  addSun(radius: number, position: [number, number, number]) {
+    // height and width segments provides the number of vertexes for the planet, less = chunkier, smooth is reach around 30
+    const heightSegments: number = 32;
+    const widthSegments: number = 32;
+    const geometry = new THREE.SphereGeometry(radius, widthSegments, heightSegments);
+
+      // Load the texture
+    const textureLoader = new THREE.TextureLoader();
+    const planetTexture = textureLoader.load('planet-textures/sun-texture-1.png'); // Load the texture from the path
+
+    const material = new THREE.MeshStandardMaterial({
+      // color: 0xFFFF00,
+      // emissive: 0xFFFF00,
+      emissiveIntensity: 1,     // brightness of planet
+      roughness: 0.5,             // affects shine
+      metalness: 0.5,             // level of shine
+      wireframe: false,
+      map: planetTexture,
+      transparent: false,
+      opacity: 1.0
+    });
+    const sun = new THREE.Mesh(geometry, material);
+    sun.position.set(...position);
+    return sun;
+  }
+
+  
+  createSunHalo(radius: number): THREE.ShaderMaterial {
+    return new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+        uRadius: { value: radius },
+      },
+      vertexShader: `
+        varying float vOpacity;
+        uniform float uRadius;
+
+        void main() {
+          vec4 mvPosition = modelViewMatrix * vec4(position, 1.44);  // value changes size of halo... at 1.5 it makes a freaky effect
+          gl_Position = projectionMatrix * mvPosition;
+
+          // Calculate opacity based on distance from the sun
+          float distance = length(position);
+          vOpacity = smoothstep(uRadius, uRadius * 1.5, distance); // Adjust the 1.5 to control the falloff
+        }
+      `,
+      fragmentShader: `
+        uniform float uTime;
+        varying float vOpacity;
+
+        void main() {
+          // Create a glowing effect with varying color
+          vec3 baseColor = vec3(1.0, 0.8, 0.0); // Yellowish
+          vec3 glowColor = vec3(1.0, 0.5, 0.0);  // Orangeish
+          float intensity = 0.5 + 0.5 * sin(uTime * 3.0); // Vary the intensity with time
+          vec3 finalColor = mix(baseColor, glowColor, intensity);
+
+          gl_FragColor = vec4(finalColor, vOpacity * 0.3); // Make the halo slightly transparent
+          gl_FragColor.a *= smoothstep(0.0, 1.0, vOpacity);
+        }
+      `,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      transparent: true,
+    });
+  }
+
+  // basic material add planets
+  addPlanets() {                                    // [x, y, z] - x = 5 left , y = 5 up, z = -5 out
+    const planet1 = this.createPlanet(1, '#00ffff', [4, 0, 0], 'planet-textures/dope-planet-texture-23.png');
+    const planet2 = this.createPlanet(1.5,  '#ff00ff', [-4, 0, 0], 'planet-textures/dope-planet-texture-7.png');
+    const planet3 = this.createPlanet(3, 'yellow', [0, 5, 0], 'planet-textures/purple-planet-texture-1.png');
+    this.planets = [planet1, planet2, planet3];
+    this.scene!.add(planet1, planet2, planet3);
+  }
+
+  createPlanet(radius: number, color: string, position: [number, number, number], texturePath: string): THREE.Mesh {
+    // height and width segments provides the number of vertexes for the planet, less = chunkier, smooth is reach around 30
+    const heightSegments: number = 30;
+    const widthSegments: number = 30;
+    const geometry = new THREE.SphereGeometry(radius, widthSegments, heightSegments);
+
+      // Load the texture
+    const textureLoader = new THREE.TextureLoader();
+    const planetTexture = textureLoader.load(texturePath); // Load the texture from the path
+
+    const material = new THREE.MeshStandardMaterial({
+      // color: color,
+      // emissive: color,
+      emissiveIntensity: 1,     // brightness of planet
+      roughness: 0.5,             // affects shine
+      metalness: 0.1,             // level of shine
+      wireframe: false,
+      map: planetTexture,
+      transparent: false,
+      opacity: 1.0
+    });
+    const planet = new THREE.Mesh(geometry, material);
+    planet.position.set(...position);
+
+    return planet;
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////////////////
+  //                            GOOD TO GO
+  /////////////////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////////////////
+
   createCamera() {
-    this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 800);
     this.camera.position.set(this.initialCameraPosition.x, this.initialCameraPosition.y, this.initialCameraPosition.z);
   }
 
@@ -93,6 +291,7 @@ export class ThreejsBgSceneComponent implements OnInit, OnDestroy {
     this.controls.target.set(0, 0, 0);
   }
 
+  // bg for scene...pretty much black with mild offset
   addBackground() {
     const canvas = this.renderer!.domElement;
     const ctx = canvas.getContext('2d');
@@ -106,19 +305,15 @@ export class ThreejsBgSceneComponent implements OnInit, OnDestroy {
     }
   }
 
-  brightenPlanetsWithAmbientLight(): void {
-    const ambientLight = new THREE.AmbientLight(0xffffff, 3);
-    this.scene!.add(ambientLight);
-  }
-
-  addAmbientLight() {
-    const ambientLight = new THREE.AmbientLight(0x404040);
+    addAmbientLight() {
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+    // const ambientLight = new THREE.AmbientLight(0x404040);
     this.scene!.add(ambientLight);
   }
   
   addPointLight() {
-    const pointLight = new THREE.PointLight(0xffffff, 1);
-    pointLight.position.set(0, 5, 5);
+    const pointLight = new THREE.PointLight(0xffffff, 500);
+    pointLight.position.set(0, 10, 10);
     this.scene!.add(pointLight);
   }
 
@@ -189,217 +384,6 @@ export class ThreejsBgSceneComponent implements OnInit, OnDestroy {
     const stars = new THREE.Points(starsGeometry, starsMaterial);
     this.scene!.add(stars);
   }
-
-  // basic material add planets
-  addPlanets() {                                    // [x, y, z] - x = 5 left , y = 5 up, z = -5 out
-    const planet1 = this.createPlanet(1, '#00ffff', [4, 0, 0], 'planet-textures/dope-planet-texture-23.png');
-    const planet2 = this.createPlanet(1.5,  '#ff00ff', [-4, 0, 0], 'planet-textures/dope-planet-texture-7.png');
-    const planet3 = this.createPlanet(3, 'yellow', [0, 5, 0], 'planet-textures/purple-planet-texture-1.png');
-    this.planets = [planet1, planet2, planet3];
-    this.scene!.add(planet1, planet2, planet3);
-  }
-
-  createPlanet(radius: number, color: string, position: [number, number, number], texturePath: string): THREE.Mesh {
-    // height and width segments provides the number of vertexes for the planet, less = chunkier, smooth is reach around 30
-    const heightSegments: number = 30;
-    const widthSegments: number = 30;
-    const geometry = new THREE.SphereGeometry(radius, widthSegments, heightSegments);
-
-      // Load the texture
-    const textureLoader = new THREE.TextureLoader();
-    const planetTexture = textureLoader.load(texturePath); // Load the texture from the path
-
-    const material = new THREE.MeshStandardMaterial({
-      // color: color,
-      // emissive: color,
-      emissiveIntensity: 0.5,     // brightness of planet
-      roughness: 0.2,             // affects shine
-      metalness: 0.1,             // level of shine
-      wireframe: false,
-      map: planetTexture
-    });
-    const planet = new THREE.Mesh(geometry, material);
-    planet.position.set(...position);
-
-
-    
-    return planet;
-  }
-
-// createPlanet(radius: number, color: string, position: [number, number, number]): THREE.Mesh {
-//   const geometry = new THREE.SphereGeometry(radius, 32, 32);
-//   const textureLoader = new THREE.TextureLoader();
-//   const planetTexture = textureLoader.load('grad-1.png');
-//   const material = new THREE.MeshToonMaterial({
-//     color: color,
-//     emissive: color,
-//     emissiveIntensity: 0.5,
-//     wireframe: false,
-//     // gradientMap: this.createToonGradientTexture(),
-//     map: planetTexture, // Add the texture here
-//     // You can optionally add a "toon shading" texture (gradient map) here
-//     // gradientMap: this.createToonGradientTexture(),
-//   });
-//   const planet = new THREE.Mesh(geometry, material);
-//   planet.position.set(...position);
-//   return planet;
-// }
-
-// Optional: Function to create a basic toon gradient texture
-createToonGradientTexture(): THREE.DataTexture {
-  // const size = 16;
-  // const data = new Uint8Array(size);
-
-  // for (let i = 0; i < size; i++) {
-  //   const v = Math.floor((i / size) * 255);
-  //   data[i] = v;
-  // }
-
-  // const texture = new THREE.DataTexture(data, size, 1, THREE.RedFormat, THREE.UnsignedByteType);
-  // texture.needsUpdate = true;
-  // return texture;
-  const size = 3;
-  const data = new Uint8Array(size);
-
-  data[0] = 0;   // Dark
-  data[1] = 128; // Medium
-  data[2] = 255; // Light
-
-  const texture = new THREE.DataTexture(data, size, 1, THREE.RedFormat, THREE.UnsignedByteType);
-  texture.needsUpdate = true;
-  texture.minFilter = THREE.NearestFilter; // Important for sharp steps
-  texture.magFilter = THREE.NearestFilter;
-  return texture;
-}
-
-  private cloudParticlesInitialDirection: boolean = true;
-  animateScene = () => {
-    if (!this.scene || !this.camera || !this.renderer) return;
-
-    this.animationFrameId = requestAnimationFrame(this.animateScene);
-
-    this.planets.forEach(planet => {
-      planet.rotation.y += 0.005;
-      planet.rotation.x += 0.005;
-    });
-
-    // Optionally update particle positions or the cloud's rotation here
-    if (this.cloudParticles) {
-      if (this.cloudParticlesInitialDirection) {
-        this.cloudParticles.rotation.x += 0.00003;
-        this.cloudParticles.rotation.y += 0.00003;
-        this.cloudParticles.rotation.z += 0.00003;
-        if (this.cloudParticles.rotation.x > 0.004) {
-          this.cloudParticlesInitialDirection = false;
-        }
-      } else {
-        this.cloudParticles.rotation.x -= 0.00003;
-        this.cloudParticles.rotation.y -= 0.00003;
-        this.cloudParticles.rotation.z -= 0.00003;
-        if (this.cloudParticles.rotation.x < -0.004) {
-          this.cloudParticlesInitialDirection = true;
-        }
-      }    
-    }
-
-    this.controls?.update();
-    this.renderer.render(this.scene, this.camera);
-  };
-
-  handlePlanetClick() {
-    const ctx = this.renderer!.domElement.getContext('2d')
-    console.log(ctx);
-    const domEl = this.renderer!.domElement;
-    console.log(domEl);
-    
-    
-    if (this.isTransitioning) return;
-    this.currentPlanetIndex = (this.currentPlanetIndex + 1) % this.targetPositions.length;
-    this.animateCamera(this.targetPositions[this.currentPlanetIndex], this.targetLookAt[this.currentPlanetIndex]);
-  }
-
-  animateCamera = (targetPosition: THREE.Vector3, targetLookAtPoint: THREE.Vector3) => {
-    if (!this.camera || !this.controls) return;
-
-    this.isTransitioning = true;
-    const { position, quaternion } = this.camera;
-    const startPosition = new THREE.Vector3().copy(position);
-    const startQuaternion = this.camera.quaternion.clone();
-    const targetQuaternion = new THREE.Quaternion();
-
-    const dummy = new THREE.Object3D();
-    dummy.position.copy(targetPosition);
-    dummy.lookAt(targetLookAtPoint);
-    targetQuaternion.copy(dummy.quaternion);
-
-    let startTime = 0;
-    const duration = 2000;
-
-    const animate = (time: number) => {
-        if (!startTime) startTime = time;
-        const elapsed = time - startTime;
-        const progress = Math.min(1, elapsed / duration);
-        console.log('progress: ', progress)
-        
-
-        // position.lerpVectors(startPosition, targetPosition, progress);
-        // quaternion.slerp(startQuaternion, targetQuaternion, progress);
-        // this.controls!.target.lerp(targetLookAtPoint, targetLookAtPoint, progress);
-
-        position.lerpVectors(startPosition, targetPosition, progress);
-        quaternion.slerp(startQuaternion, progress);
-        this.controls!.target.lerpVectors(this.controls!.target, targetLookAtPoint, progress); // Use lerpVectors
-
-        if (progress < 1) {
-            this.animationFrameId = requestAnimationFrame(animate);
-        } else {
-            this.isTransitioning = false;
-            // this.controls?.reset();  // will return to original scene camera location
-        }
-    };
-
-    this.animationFrameId = requestAnimationFrame(animate);
-  }
-
-  logCamera() {
-    console.log(this.camera?.position);
-    
-  }
-
-  currentPlanetIndex = -1;
-  isTransitioning = false;
-
-  initialCameraPosition = new THREE.Vector3(0, 5, 25);
-  targetPositions = [
-    new THREE.Vector3(12, 0, -1),
-    new THREE.Vector3(-8, 4, -2),
-    new THREE.Vector3(0, 12, 8),
-    new THREE.Vector3(0, 5, 15)
-  ];
-  targetLookAt = [
-    new THREE.Vector3(0, 0, 0),
-    new THREE.Vector3(0, 0, 0),
-    new THREE.Vector3(0, 0, 0),
-    new THREE.Vector3(0, 0, 0)
-  ];
-
-  cloudParticles!: THREE.Points;
-  cloudMaterial!: THREE.ShaderMaterial;
-  cloudGeometry!: THREE.BufferGeometry;
-
-
-
-  async loadGradientTexture(): Promise<any> {
-  const textureLoader = new THREE.TextureLoader();
-  try {
-    // Assuming you have an image file named 'teal-purple-blue-gradient.png' in your assets
-    const texture = await textureLoader.loadAsync('teal-purple-blue-gradient-trans-2.png');
-    return texture;
-  } catch (error) {
-    console.error('Error loading gradient texture:', error);
-    return null;
-  }
-}
 
   async createSpaceCloud() {
     const numParticles = 80; // Increase for a denser cloud
@@ -494,5 +478,94 @@ createToonGradientTexture(): THREE.DataTexture {
 
     // You might want to animate the cloud's position or the particles over time
   }
+
+  // used in createSpaceCloud()
+  async loadGradientTexture(): Promise<any> {
+    const textureLoader = new THREE.TextureLoader();
+    try {
+      // Assuming you have an image file named 'teal-purple-blue-gradient.png' in your assets
+      const texture = await textureLoader.loadAsync('teal-purple-blue-gradient-trans-2.png');
+      return texture;
+    } catch (error) {
+      console.error('Error loading gradient texture:', error);
+      return null;
+    }
+  }
+
+    handlePlanetClick() {
+    const ctx = this.renderer!.domElement.getContext('2d')
+    console.log(ctx);
+    const domEl = this.renderer!.domElement;
+    console.log(domEl);
+    
+    
+    if (this.isTransitioning) return;
+    this.currentPlanetIndex = (this.currentPlanetIndex + 1) % this.targetPositions.length;
+    this.animateCamera(this.targetPositions[this.currentPlanetIndex], this.targetLookAt[this.currentPlanetIndex]);
+  }
+
+  animateCamera = (targetPosition: THREE.Vector3, targetLookAtPoint: THREE.Vector3) => {
+    if (!this.camera || !this.controls) return;
+
+    this.isTransitioning = true;
+    const { position, quaternion } = this.camera;
+    const startPosition = new THREE.Vector3().copy(position);
+    const startQuaternion = this.camera.quaternion.clone();
+    const targetQuaternion = new THREE.Quaternion();
+
+    const dummy = new THREE.Object3D();
+    dummy.position.copy(targetPosition);
+    dummy.lookAt(targetLookAtPoint);
+    targetQuaternion.copy(dummy.quaternion);
+
+    let startTime = 0;
+    const duration = 2000;
+
+    const animate = (time: number) => {
+        if (!startTime) startTime = time;
+        const elapsed = time - startTime;
+        const progress = Math.min(1, elapsed / duration);
+        console.log('progress: ', progress)
+        
+
+        // position.lerpVectors(startPosition, targetPosition, progress);
+        // quaternion.slerp(startQuaternion, targetQuaternion, progress);
+        // this.controls!.target.lerp(targetLookAtPoint, targetLookAtPoint, progress);
+
+        position.lerpVectors(startPosition, targetPosition, progress);
+        quaternion.slerp(startQuaternion, progress);
+        this.controls!.target.lerpVectors(this.controls!.target, targetLookAtPoint, progress); // Use lerpVectors
+
+        if (progress < 1) {
+            this.animationFrameId = requestAnimationFrame(animate);
+        } else {
+            this.isTransitioning = false;
+            // this.controls?.reset();  // will return to original scene camera location
+        }
+    };
+
+    this.animationFrameId = requestAnimationFrame(animate);
+  }
+
+  logCamera() {
+    console.log(this.camera?.position);
+  }
+
+  currentPlanetIndex = -1;
+  isTransitioning = false;
+
+  initialCameraPosition = new THREE.Vector3(0, 5, 25);
+  targetPositions = [
+    new THREE.Vector3(12, 0, -1),
+    new THREE.Vector3(-8, 4, -2),
+    new THREE.Vector3(0, 12, 8),
+    new THREE.Vector3(0, 5, 15)
+  ];
+  targetLookAt = [
+    new THREE.Vector3(0, 0, 0),
+    new THREE.Vector3(0, 0, 0),
+    new THREE.Vector3(0, 0, 0),
+    new THREE.Vector3(0, 0, 0)
+  ];
 
 }
