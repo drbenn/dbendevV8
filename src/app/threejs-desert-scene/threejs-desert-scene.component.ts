@@ -2,6 +2,7 @@ import { Component, OnInit, ElementRef, ViewChild, HostListener, AfterViewInit, 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { log } from 'three/src/nodes/TSL.js';
 
 @Component({
   selector: 'threejs-desert-scene',
@@ -43,8 +44,8 @@ onKeyUp = (event: KeyboardEvent) => {
   private controls: OrbitControls | null = null;
   private camera: THREE.PerspectiveCamera | null = null;
   private initialCameraPosition = new THREE.Vector3(0, 5, 25);
-  private cameraOffset = new THREE.Vector3(0, 15, -25); // position behind car
-  private cameraLookAtOffset = new THREE.Vector3(0, 0, 0); // where camera looks on the car
+  private cameraOffset = new THREE.Vector3(0, 6, -12); // position behind car
+  private cameraLookAtOffset = new THREE.Vector3(0, 2, 0); // where camera looks on the car
   private isCameraFollowing = true;
 
   private planets: THREE.Mesh[] = [];
@@ -148,22 +149,35 @@ onKeyUp = (event: KeyboardEvent) => {
       }
     }
 
-      // if (this.camera && this.car && this.isCameraFollowing) {
-      //   const carWorldPos = new THREE.Vector3();
-      //   this.car.getWorldPosition(carWorldPos);
+    // console.log(this.car?.position)
+    if (this.car && this.camera) {
+      console.log(this.camera.position);
+      // this.camera.position.set(0, 5, this.camera.position.z -= this.carSpeed)
+      
+      // const carWorldPosition: THREE.Vector3 = new THREE.Vector3();
+      // this.car.getWorldPosition(carWorldPosition);
 
-      //   const carWorldQuat = new THREE.Quaternion();
-      //   this.car.getWorldQuaternion(carWorldQuat);
+      // // need carWorldQuaternion because over time the car moves and the camera must stay offset in world space, not car-relative space.
+      // const carWorldQuaternion: THREE.Quaternion = new THREE.Quaternion;
+      // this.car.getWorldQuaternion(carWorldQuaternion);
+      // console.log(carWorldPosition);
+      
+      // this.camera.position.set()
 
-      //   // Offset relative to car orientation
-      //   const offset = this.cameraOffset.clone().applyQuaternion(carWorldQuat);
-      //   const cameraPos = carWorldPos.clone().add(offset);
+      // const offset: THREE.Vector3 = new THREE.Vector3(5, 6, -12); // height + behind
+      // const offset: THREE.Vector3 = new THREE.Vector3(0, 12, -26); // height + behind
+      // offset.applyQuaternion(carWorldQuaternion); // rotate the offset by car's facing
+      
+      // const cameraPosition = carWorldPosition.clone().add(offset);
 
-      //   this.camera.position.lerp(cameraPos, 0.1); // smooth follow
+    //   const direction = new THREE.Vector3(0, 0, -1);
+    // direction.applyQuaternion(carWorldQuaternion);
+    // console.log("Car is facing toward:", direction);
 
-      //   const lookAtPos = carWorldPos.clone().add(this.cameraLookAtOffset);
-      //   this.camera.lookAt(lookAtPos);
-      // }
+      // this.camera.position.copy(cameraPosition);
+
+      // this.camera.lookAt(carWorldPosition);
+    }
 
     this.controls?.update();
     this.renderer!.render(this.scene!, this.camera!);
@@ -186,7 +200,7 @@ onKeyUp = (event: KeyboardEvent) => {
       // create carGroup object to place carModel in so that rotations and directions do not need to be inverted/whatever all over the scene.
       const carGroup = new THREE.Object3D();
       carGroup.add(carModel);
-      carGroup.position.set(0, -8.00, 4);
+      carGroup.position.set(0, -8.00, 8);
       this.car = carGroup;
 
       // add correctly oriented carGroup with rotated carModel contained as car for scene animations and cameras to interact with.
