@@ -20,17 +20,46 @@ export class ThreejsDesertSceneComponent implements OnInit, OnDestroy {
     }
   }
 
+  onKeyDown = (event: KeyboardEvent) => {
+    if (event.code === 'ArrowLeft' || event.code === 'KeyA') {
+        this.moveLeft = true;
+    }
+    if (event.code === 'ArrowRight' || event.code === 'KeyD') {
+        this.moveRight = true;
+    }
+};
+
+onKeyUp = (event: KeyboardEvent) => {
+    if (event.code === 'ArrowLeft' || event.code === 'KeyA') {
+        this.moveLeft = false;
+    }
+    if (event.code === 'ArrowRight' || event.code === 'KeyD') {
+        this.moveRight = false;
+    }
+};
+
   private scene: THREE.Scene | null = null;
   private renderer: THREE.WebGLRenderer | null = null;
   private controls: OrbitControls | null = null;
   private camera: THREE.PerspectiveCamera | null = null;
   private initialCameraPosition = new THREE.Vector3(0, 5, 25);
+  private cameraOffset = new THREE.Vector3(0, 15, -25); // position behind car
+  private cameraLookAtOffset = new THREE.Vector3(0, 0, 0); // where camera looks on the car
+  private isCameraFollowing = true;
+
   private planets: THREE.Mesh[] = [];
   private animationFrameId: number | null = null;
 
   private car: THREE.Object3D | null = null;
+  private carGroup: THREE.Object3D | null = null;
   private desertSphere: THREE.Mesh | null = null;
   private clock = new THREE.Clock();
+
+  // car movement props
+  private moveLeft = false;
+  private moveRight = false;
+  private carSpeed = 0.1;
+  private carTurnSpeed = 0.075;
 
   constructor() {}
   
@@ -45,12 +74,17 @@ export class ThreejsDesertSceneComponent implements OnInit, OnDestroy {
     // this.addPlanets();
 
     this.loadCarModel();
-    this.addDesertFloor();
+    // this.addDesertFloor();
     this.addBackgroundGradient();
+    this.addDesertPlane();
     this.addDustEffect();
 
 
     this.animateScene();
+
+    // Listen for key events
+    window.addEventListener('keydown', this.onKeyDown);
+    window.addEventListener('keyup', this.onKeyUp);
   }
 
   ngOnDestroy(): void {
@@ -83,41 +117,97 @@ export class ThreejsDesertSceneComponent implements OnInit, OnDestroy {
     const elapsed = this.clock.getElapsedTime();
 
     // Rotate desert slowly
-    if (this.desertSphere) {
-        this.desertSphere.rotation.z += 0.0005;
-    }
+    // if (this.desertSphere) {
+    //     this.desertSphere.rotation.z += 0.0005;
+    // }
 
     // Animate car wheels / dust later here...
 
     // Camera animation
-    if (elapsed > 10 && elapsed < 20) {
-        // Slowly interpolate camera to side view
-        const t = (elapsed - 10) / 10;
-        this.camera!.position.lerp(new THREE.Vector3(10, 3, 0), 0.02); // move right
-        this.controls!.target.lerp(new THREE.Vector3(0, 1, 0), 0.02); // aim at car center
+    // if (elapsed > 20 && elapsed < 25) {
+    //     // Slowly interpolate camera to side view
+    //     const t = (elapsed - 10) / 10;
+    //     this.camera!.position.lerp(new THREE.Vector3(10, 3, 0), 0.02); // move right
+    //     this.controls!.target.lerp(new THREE.Vector3(0, 1, 0), 0.02); // aim at car center
+    // }
+
+    // Move car forward + left/right
+    if (this.car) {
+      // Move forward constantly
+      this.car.position.z -= this.carSpeed;
+
+      // Move left/right
+      if (this.moveLeft) {
+          this.car.position.x -= this.carTurnSpeed;
+          this.car.rotation.y = 0.1; // slight tilt when turning
+      } else if (this.moveRight) {
+          this.car.position.x += this.carTurnSpeed;
+          this.car.rotation.y = -0.1; // slight tilt when turning
+      } else {
+          this.car.rotation.z = 0; // straighten out when not turning
+      }
     }
+
+      // if (this.camera && this.car && this.isCameraFollowing) {
+      //   const carWorldPos = new THREE.Vector3();
+      //   this.car.getWorldPosition(carWorldPos);
+
+      //   const carWorldQuat = new THREE.Quaternion();
+      //   this.car.getWorldQuaternion(carWorldQuat);
+
+      //   // Offset relative to car orientation
+      //   const offset = this.cameraOffset.clone().applyQuaternion(carWorldQuat);
+      //   const cameraPos = carWorldPos.clone().add(offset);
+
+      //   this.camera.position.lerp(cameraPos, 0.1); // smooth follow
+
+      //   const lookAtPos = carWorldPos.clone().add(this.cameraLookAtOffset);
+      //   this.camera.lookAt(lookAtPos);
+      // }
 
     this.controls?.update();
     this.renderer!.render(this.scene!, this.camera!);
   };
 
 
+  
 
 
+  
   loadCarModel() {
     const loader = new GLTFLoader();
-    const scale: number = 0.75;
-    const degreesY: number = 180;
-    const degreesToRadiansY: number = (degreesY * Math.PI)/180
     loader.load('models/ae86/toyota_AE86.glb', (gltf) => {
-      this.car = gltf.scene;
-      this.car.scale.set(scale, scale, scale); // adjust scale
-      this.car.position.set(0, -8, 0); // center of scene
-      this.car.rotateY (degreesToRadiansY);
-      this.car.rotateX(-0.01);
-      this.scene!.add(this.car);
+      // declare car model and adjust model scale and rotate, as car is facing toward by default when created in blender.
+      const carModel = gltf.scene;
+      const carScale: number = 0.75;
+      carModel.scale.set(carScale, carScale, carScale);
+      carModel.rotation.y = Math.PI; // turn 180 degrees forward
+
+      // create carGroup object to place carModel in so that rotations and directions do not need to be inverted/whatever all over the scene.
+      const carGroup = new THREE.Object3D();
+      carGroup.add(carModel);
+      carGroup.position.set(0, -8.00, 4);
+      this.car = carGroup;
+
+      // add correctly oriented carGroup with rotated carModel contained as car for scene animations and cameras to interact with.
+      this.scene?.add(carGroup);
     });
   }
+
+  addDesertPlane() {
+    const geometry = new THREE.PlaneGeometry(1000, 1000, 4, 4);
+
+    const material = new THREE.MeshToonMaterial({
+        color: 0xffcc66, // desert sand color
+        gradientMap: null // optional, can add gradient texture if desired
+    });
+
+    const plane = new THREE.Mesh(geometry, material);
+    plane.rotation.x = -Math.PI / 2; // make it horizontal
+    plane.position.y = -8.1; // adjust to match car Y position
+
+    this.scene!.add(plane);
+}
 
 
   addBackgroundGradient() {
@@ -159,7 +249,7 @@ addDustEffect() {
     });
 
     const dust = new THREE.Points(particleGeometry, particleMaterial);
-    dust.position.set(-3.2, -8.2, 4.4); // rear left wheel (adjust!)
+    dust.position.set(-3.1, -8.2, 8.6); // rear left wheel (adjust!)
     this.scene!.add(dust);
 
     // Store reference for animation if desired
@@ -272,18 +362,18 @@ addDustEffect() {
   }
 
   
-  addDesertFloor() {
-    const geometry = new THREE.SphereGeometry(4000, 640, 640);
-    const material = new THREE.MeshToonMaterial({
-        color: 0xffcc66,  // desert sand color
-        // flatShading: true
-    });
+  // addDesertFloor() {
+  //   const geometry = new THREE.SphereGeometry(4000, 640, 640);
+  //   const material = new THREE.MeshToonMaterial({
+  //       color: 0xffcc66,  // desert sand color
+  //       // flatShading: true
+  //   });
 
-    this.desertSphere = new THREE.Mesh(geometry, material);
-    this.desertSphere.rotation.x = Math.PI / 2; // align ground
-    this.desertSphere.position.set(0,-4008,0)
-    this.scene!.add(this.desertSphere);
-  }
+  //   this.desertSphere = new THREE.Mesh(geometry, material);
+  //   this.desertSphere.rotation.x = Math.PI / 2; // align ground
+  //   this.desertSphere.position.set(0,-4008,0)
+  //   this.scene!.add(this.desertSphere);
+  // }
   
   createPlanet(radius: number, color: string, position: [number, number, number], texturePath: string): THREE.Mesh {
     // height and width segments provides the number of vertexes for the planet, less = chunkier, smooth is reach around 30
