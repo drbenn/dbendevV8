@@ -41,7 +41,7 @@ onKeyUp = (event: KeyboardEvent) => {
 
   private scene: THREE.Scene | null = null;
   private renderer: THREE.WebGLRenderer | null = null;
-  private controls: OrbitControls | null = null;
+  private orbitControls: OrbitControls | null = null;
   private camera: THREE.PerspectiveCamera | null = null;
   private initialCameraPosition = new THREE.Vector3(0, 5, 25);
   private cameraOffset = new THREE.Vector3(0, 6, -12); // position behind car
@@ -52,14 +52,13 @@ onKeyUp = (event: KeyboardEvent) => {
   private animationFrameId: number | null = null;
 
   private car: THREE.Object3D | null = null;
-  private carGroup: THREE.Object3D | null = null;
   private desertSphere: THREE.Mesh | null = null;
   private clock = new THREE.Clock();
 
   // car movement props
   private moveLeft = false;
   private moveRight = false;
-  private carSpeed = 0.1;
+  private carSpeed = .2;
   private carTurnSpeed = 0.075;
 
   constructor() {}
@@ -95,7 +94,7 @@ onKeyUp = (event: KeyboardEvent) => {
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
     }
-    this.controls?.dispose();
+    this.orbitControls?.dispose();
   }
 
   animateScene = () => {
@@ -108,7 +107,7 @@ onKeyUp = (event: KeyboardEvent) => {
     //   planet.rotation.x += 0.005;
     // });
 
-    // this.controls?.update();
+    // this.orbitControls?.update();
     // this.renderer!.render(this.scene!, this.camera!);
 
     if (!this.scene || !this.camera || !this.renderer) return;
@@ -129,7 +128,7 @@ onKeyUp = (event: KeyboardEvent) => {
     //     // Slowly interpolate camera to side view
     //     const t = (elapsed - 10) / 10;
     //     this.camera!.position.lerp(new THREE.Vector3(10, 3, 0), 0.02); // move right
-    //     this.controls!.target.lerp(new THREE.Vector3(0, 1, 0), 0.02); // aim at car center
+    //     this.orbitControls!.target.lerp(new THREE.Vector3(0, 1, 0), 0.02); // aim at car center
     // }
 
     // Move car forward + left/right
@@ -145,45 +144,41 @@ onKeyUp = (event: KeyboardEvent) => {
           this.car.position.x += this.carTurnSpeed;
           this.car.rotation.y = -0.1; // slight tilt when turning
       } else {
-          this.car.rotation.z = 0; // straighten out when not turning
+          this.car.rotation.y = 0; // straighten out when not turning
       }
     }
 
-    // console.log(this.car?.position)
-    if (this.car && this.camera) {
-      console.log(this.camera.position);
-      // this.camera.position.set(0, 5, this.camera.position.z -= this.carSpeed)
+    if (this.car) {
+      const carPosition = new THREE.Vector3();
+      this.car!.getWorldPosition(carPosition);
+
+      // carQuat position currently unncessary, quaternion position tracks rotation
+      // const carQuatPosition = new THREE.Quaternion();
+      // this.car.getWorldQuaternion(carQuatPosition);
+
+      const cameraOffsetFromCar = new THREE.Vector3(0, 3, 12);
+      const offsetCameraPosition = carPosition.clone().add(cameraOffsetFromCar);
+      this.camera.position.lerp(offsetCameraPosition, 0.1);
+
+      // must not only update lookAt for the camera, but also the target/lookAt for the orbit controls, since orbit controls have been enabled.
       
-      // const carWorldPosition: THREE.Vector3 = new THREE.Vector3();
-      // this.car.getWorldPosition(carWorldPosition);
-
-      // // need carWorldQuaternion because over time the car moves and the camera must stay offset in world space, not car-relative space.
-      // const carWorldQuaternion: THREE.Quaternion = new THREE.Quaternion;
-      // this.car.getWorldQuaternion(carWorldQuaternion);
-      // console.log(carWorldPosition);
+      // introduce carPositionOffset to make camera look more toward horizon
+      const cameraLookAtOffsetFromCar = new THREE.Vector3(0, 5.5, 1);
+      const cameraLookAtWithOffset = carPosition.clone().add(cameraLookAtOffsetFromCar);
       
-      // this.camera.position.set()
-
-      // const offset: THREE.Vector3 = new THREE.Vector3(5, 6, -12); // height + behind
-      // const offset: THREE.Vector3 = new THREE.Vector3(0, 12, -26); // height + behind
-      // offset.applyQuaternion(carWorldQuaternion); // rotate the offset by car's facing
-      
-      // const cameraPosition = carWorldPosition.clone().add(offset);
-
-    //   const direction = new THREE.Vector3(0, 0, -1);
-    // direction.applyQuaternion(carWorldQuaternion);
-    // console.log("Car is facing toward:", direction);
-
-      // this.camera.position.copy(cameraPosition);
-
-      // this.camera.lookAt(carWorldPosition);
+      this.camera.lookAt(cameraLookAtWithOffset);
+      this.orbitControls?.target.copy(cameraLookAtWithOffset);
     }
 
-    this.controls?.update();
+    this.orbitControls?.update();
     this.renderer!.render(this.scene!, this.camera!);
   };
 
-
+  createCamera() {
+    this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 800);
+    this.camera.position.set(this.initialCameraPosition.x, this.initialCameraPosition.y, this.initialCameraPosition.z);
+    this.scene!.add(this.camera);
+  }
   
 
 
@@ -193,18 +188,18 @@ onKeyUp = (event: KeyboardEvent) => {
     loader.load('models/ae86/toyota_AE86.glb', (gltf) => {
       // declare car model and adjust model scale and rotate, as car is facing toward by default when created in blender.
       const carModel = gltf.scene;
-      const carScale: number = 0.75;
+      const carScale: number = 0.4;
       carModel.scale.set(carScale, carScale, carScale);
       carModel.rotation.y = Math.PI; // turn 180 degrees forward
 
       // create carGroup object to place carModel in so that rotations and directions do not need to be inverted/whatever all over the scene.
-      const carGroup = new THREE.Object3D();
+      let carGroup: THREE.Object3D = new THREE.Object3D();
       carGroup.add(carModel);
       carGroup.position.set(0, -8.00, 8);
       this.car = carGroup;
 
       // add correctly oriented carGroup with rotated carModel contained as car for scene animations and cameras to interact with.
-      this.scene?.add(carGroup);
+      this.scene?.add(this.car);
     });
   }
 
@@ -322,10 +317,7 @@ addDustEffect() {
 
 
 
-  createCamera() {
-    this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 800);
-    this.camera.position.set(this.initialCameraPosition.x, this.initialCameraPosition.y, this.initialCameraPosition.z);
-  }
+
 
   createRenderer() {
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true  });
@@ -335,10 +327,10 @@ addDustEffect() {
   }
 
   setOrbitControls() {
-    this.controls = new OrbitControls(this.camera!, this.renderer!.domElement);
-    this.controls.enableDamping = true;
-    this.controls.dampingFactor = 0.1;
-    this.controls.target.set(0, 0, 0);
+    this.orbitControls = new OrbitControls(this.camera!, this.renderer!.domElement);
+    this.orbitControls.enableDamping = true;
+    this.orbitControls.dampingFactor = 0.1;
+    this.orbitControls.target.set(0, 0, 0);
   }
 
   // bg for scene...pretty much black with mild offset
@@ -356,14 +348,14 @@ addDustEffect() {
   }
 
     addAmbientLight() {
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
     // const ambientLight = new THREE.AmbientLight(0x404040);
     this.scene!.add(ambientLight);
   }
   
   addPointLight() {
-    const pointLight = new THREE.PointLight(0xffffff, 500);
-    pointLight.position.set(0, 10, 10);
+    const pointLight = new THREE.PointLight(0xffffff, 2500, 0, 1.5);
+    pointLight.position.set(0, 10, 100);
     this.scene!.add(pointLight);
   }
 
