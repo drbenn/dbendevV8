@@ -97,6 +97,8 @@ onKeyUp = (event: KeyboardEvent) => {
     this.orbitControls?.dispose();
   }
 
+  maxCarTurn: number = 0.4;
+  
   animateScene = () => {
     // if (!this.scene || !this.camera || !this.renderer) return;
 
@@ -131,22 +133,7 @@ onKeyUp = (event: KeyboardEvent) => {
     //     this.orbitControls!.target.lerp(new THREE.Vector3(0, 1, 0), 0.02); // aim at car center
     // }
 
-    // Move car forward + left/right
-    if (this.car) {
-      // Move forward constantly
-      this.car.position.z -= this.carSpeed;
-
-      // Move left/right
-      if (this.moveLeft) {
-          this.car.position.x -= this.carTurnSpeed;
-          this.car.rotation.y = 0.1; // slight tilt when turning
-      } else if (this.moveRight) {
-          this.car.position.x += this.carTurnSpeed;
-          this.car.rotation.y = -0.1; // slight tilt when turning
-      } else {
-          this.car.rotation.y = 0; // straighten out when not turning
-      }
-    }
+    this.handleAnimateCarTurn();
 
     if (this.car) {
       const carPosition = new THREE.Vector3();
@@ -406,5 +393,42 @@ addDustEffect() {
     planet.position.set(...position);
 
     return planet;
+  }
+
+
+  private handleAnimateCarTurn(): void {
+    // Move car forward + left/right
+    if (this.car) {
+      // Move forward constantly
+      this.car.position.z -= this.carSpeed;
+
+      // Move left/right
+      if (this.moveLeft) {
+        // mover car to the left smoothly, quickly at first and then slower until maxCarTurn
+        if (this.car.rotation.y <= this.maxCarTurn / 2) {
+          this.car.rotation.y += 0.03;
+        } else if (this.car.rotation.y < this.maxCarTurn) {
+          this.car.rotation.y += 0.015;
+        } else {
+          this.car.rotation.y = this.maxCarTurn;
+        }
+      } else if (this.moveRight) {
+        // mover car to the left smoothly, quickly at first and then slower until maxCarTurn
+        if (this.car.rotation.y >= -(this.maxCarTurn / 2)) {
+          this.car.rotation.y -= 0.03;
+        } else if (this.car.rotation.y > -this.maxCarTurn) {
+          this.car.rotation.y -= 0.015;
+        } else {
+          this.car.rotation.y = -this.maxCarTurn;
+        }
+      } else {
+        // smoothly return car to center over time
+        if (this.car.rotation.y > 0.1) {
+          this.car.rotation.y -= 0.1;
+        } else if (this.car.rotation.y < -0.1) {
+          this.car.rotation.y += 0.1;
+        }
+      }
+    }
   }
 }
