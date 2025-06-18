@@ -1,0 +1,61 @@
+<div class="fixed z-40 top-0 w-full border-b border-zinc-100 transition-colors duration-300 ease-in-out"
+      [ngClass]="{'bg-white/60 backdrop-blur-sm shadow-sm': scrollY > 15, 'bg-transparent': scrollY <= 15}">
+  <div class="w-[90vw] sm:w-[90vw] md:w-[85vw] lg:w-[80vw] max-w-7xl mx-auto">
+    <div class="flex justify-between items-center transition-all duration-300 ease-in-out" [ngClass]="{'h-7': scrollY > 15, 'h-16': scrollY <= 15}">
+
+      <div class="flex items-center cursor-pointer">
+        <a href="#top" (click)="scrollToSection($event, '#top')"
+            class="flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full"
+            aria-label="Back to top, Dan Bennett Home">
+          <div class="relative overflow-hidden flex-shrink-0 transition-all duration-300 ease-in-out" [ngClass]="{'w-8 h-8': scrollY > 15, 'w-12 h-12': scrollY <= 15}">
+            <img 
+              ngSrc="assets/icon/rocky.png"
+              alt="Dan Bennett Dev logo - rocky head outline"
+              width="36"
+              height="36"
+              priority
+              class="absolute top-1/2 left-1/2 min-w-full min-h-full transform -translate-x-1/2 -translate-y-1/2" />
+          </div>
+        </a>
+      </div>
+
+      <nav class="hidden sm:flex items-center gap-6" aria-label="Main navigation">
+        <a href="#projects-section" (click)="scrollToSection($event, '#projects-section')"
+            class="font-medium text-zinc-700 hover:text-blue-600 px-2 py-1 transition-colors duration-200 ease-in-out">
+          Projects
+        </a>
+        <a href="#about" (click)="scrollToSection($event, '#about')"
+            class="font-medium text-zinc-700 hover:text-blue-600 px-2 py-1 transition-colors duration-200 ease-in-out">
+          About
+        </a>
+        <a href="#contact" (click)="scrollToSection($event, '#contact')"
+            class="font-medium text-zinc-700 hover:text-blue-600 px-2 py-1 transition-colors duration-200 ease-in-out">
+          Contact
+        </a>
+      </nav>
+
+      <div class="block sm:hidden">
+        <label for="my-drawer" class="btn btn-ghost btn-circle swap swap-rotate">
+          <svg class="swap-off fill-current" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 512 512"><path d="M64,384H448V341.33H64Zm0-106.67H448V234.67H64ZM64,128V170.67H448V128Z"/></svg>
+          <svg class="swap-on fill-current" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 512 512"><polygon points="400 145.49 366.51 112 256 222.51 145.49 112 112 145.49 222.51 256 112 366.51 145.49 400 256 289.49 366.51 400 400 366.51 289.49 256 400 145.49"/></svg>
+        </label>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="drawer drawer-end">
+  <input id="my-drawer" type="checkbox" class="drawer-toggle" aria-label="Open mobile navigation" />
+  <div class="drawer-content">
+    </div>
+  <div class="drawer-side z-50">
+    <label for="my-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
+    <ul class="menu p-4 w-80 min-h-full bg-base-200 text-base-content text-lg">
+      <li class="mb-2"><a (click)="scrollToSectionAndCloseDrawer($event, '#top')" class="hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">Home</a></li>
+      <li class="mb-2"><a (click)="scrollToSectionAndCloseDrawer($event, '#projects-section')" class="hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">Projects</a></li>
+      <li class="mb-2"><a (click)="scrollToSectionAndCloseDrawer($event, '#about')" class="hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">About</a></li>
+      <li class="mb-2"><a (click)="scrollToSectionAndCloseDrawer($event, '#contact')" class="hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">Contact</a></li>
+    </ul>
+  </div>
+</div>

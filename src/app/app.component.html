@@ -1,5 +1,46 @@
-<main class="main">
-
+<!-- <main class="main"> -->
+  <!-- <app-hero-section></app-hero-section>
+  <app-projects-section></app-projects-section> -->
   <!-- <threejs-bg-scene></threejs-bg-scene> -->
-  <threejs-desert-scene></threejs-desert-scene>
+  <!-- <threejs-desert-scene></threejs-desert-scene> -->
+<!-- </main> -->
+
+
+<main class="text-zinc-900 min-h-screen flex flex-col">
+  <!-- Loading Animation Overlay -->
+  @if (isLoading) {
+    <div
+      id="load-animation"
+      class="absolute inset-0 z-50 h-screen w-screen overflow-hidden simple-intro-bg flex justify-center items-center"
+      aria-live="polite"
+      aria-busy="true">
+      <!-- Optional: Add a spinner or text for better UX/A11y during loading -->
+      <div class="sr-only">Content is loading...</div>
+    </div>
+  }
+
+  <!-- Main Content (shown after loading) -->
+  @if (!isLoading) {
+    <div class="flex flex-col flex-grow">
+      <div id='top'></div> <!-- Anchor for "Home" navigation -->
+      <app-navbar></app-navbar>
+  
+      <!-- Main content area wrapper for responsiveness -->
+      <div class="relative w-[90vw] sm:w-[90vw] md:w-[85vw] lg:w-[80vw] app-max-width mx-auto flex flex-col justify-start items-center">
+
+        <app-hero-section></app-hero-section>
+
+        <div id='projects-section'></div> <!-- Anchor for "Projects" navigation -->
+        <app-projects-section></app-projects-section>
+  
+        <div id='about'></div> <!-- Anchor for "About" navigation -->
+        <app-about-section></app-about-section>
+  
+      </div>
+    
+      <div id='contact'></div> <!-- Anchor for "Contact" navigation -->
+      <app-footer></app-footer>
+
+    </div>
+  }
 </main>

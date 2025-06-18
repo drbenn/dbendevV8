@@ -1,0 +1,54 @@
+<section class="w-full py-28 md:py-16 lg:py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto" aria-labelledby="projectsSectionHeading">
+  <h1 class="sr-only" id="projectsSectionHeading">
+    My Projects
+  </h1> 
+  <app-featured-projects></app-featured-projects>
+
+  <div class="mt-8 text-center md:text-left">
+    <button 
+      class="btn btn-warning text-zinc-700 hover:text-zinc-900 transition ease-in-out"
+      (click)="openModal()"
+      aria-haspopup="dialog"
+      aria-controls="projectsArchiveModal"
+      #openModalButton>
+      View All Projects
+    </button>
+  </div>
+
+  <dialog id="projectsArchiveModal" class="modal" #projectsModal>
+    <div 
+      class="modal-box w-11/12 max-w-5xl h-screen-80 modal-bottom sm:modal-middle"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="archiveModalTitle">
+
+      @defer (on interaction(openModalButton); prefetch on hover(openModalButton)) {
+        <app-projects-archive-modal></app-projects-archive-modal>
+        <form method="dialog" class="modal-backdrop">
+          <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                  (click)="closeModal()"
+                  aria-label="Close project archive modal">
+            ✕
+          </button>
+        </form>
+      } @placeholder {
+        <div class="flex justify-center items-center h-full">
+          <span class="loading loading-spinner loading-lg text-primary"></span>
+          <p class="ml-4 text-zinc-500">Loading project archive...</p>
+        </div>
+      } @loading (after 500ms) {
+        <div class="flex justify-center items-center h-full">
+          <span class="loading loading-spinner loading-lg text-primary"></span>
+          <p class="ml-4 text-zinc-500">Loading project archive...</p>
+        </div>
+      } @error {
+        <div class="flex justify-center items-center h-full text-red-500">
+          <p>Failed to load project archive. Please try again.</p>
+        </div>
+      }
+    </div>
+    <form method="dialog" class="modal-backdrop">
+      <button (click)="closeModal()" aria-label="Close project archive modal by clicking outside"></button>
+    </form>
+  </dialog>
+</section>

@@ -6,3 +6,21 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+
+
+  /* Basic loading animation background */
+.simple-intro-bg {
+  background-color: var(--load-finish-color); /* Uses a CSS variable */
+  opacity: 1;
+  transition: opacity 0.5s ease-out; /* Smooth transition for fade out */
+}
+
+/* When isLoading becomes false, this overlay should disappear.
+   The *ngIf handles removing it, but a fade-out transition is applied
+   by the `transition` property above, when `*ngIf` removes the element.
+*/
+/*
+  If you had more complex SVG/splash animations, their keyframes and styles
+  would go here. For the "simple-intro-bg" as it was used, it's mostly
+  just a background color and then the element is removed.
+*/

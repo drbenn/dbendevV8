@@ -1,0 +1,24 @@
+<section aria-labelledby="featuredProjectsHeading">
+  <div class='text-2xl font-semibold mb-4 select-none'>
+    <h2 id="featuredProjectsHeading">Featured Projects</h2>
+  </div>
+  <div class="flex flex-col flex-nowrap justify-center gap-6">
+    @if (featuredProjects$ | async; as featuredProjects) {
+      @if (featuredProjects.length > 0) {
+        @for (item of featuredProjects; track item; let last = $last; let i = $index) {
+          <app-project-card [project]="item"></app-project-card>
+          @if (!last) {
+            <hr class="border-t border-gray-200 my-4">
+          }
+        }
+      }
+      @else {
+        <p class="text-zinc-500">No featured projects available at the moment.</p>
+      }
+    }
+    @else {
+      <div class="skeleton w-full h-40 bg-gray-200 animate-pulse rounded-lg"></div>
+      <div class="skeleton w-full h-40 bg-gray-200 animate-pulse rounded-lg mt-4"></div>
+    }
+  </div>
+</section>

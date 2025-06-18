@@ -1,0 +1,22 @@
+<div class="p-4 md:p-8 lg:p-12 h-full overflow-y-auto" role="document">
+  <h2 class="text-3xl font-bold mb-6 text-zinc-800" id="archiveModalTitle">All Projects Archive</h2>
+  <div class="w-full">
+    @if (allProjects$ | async; as allProjects) {
+      @if (allProjects.length > 0) {
+        @for (item of allProjects; track item) {
+          <app-project-card [project]="item"></app-project-card>
+        }
+      }
+      @else {
+        <p class="text-zinc-500 col-span-full">No projects available in the archive.</p>
+      }
+    }
+    @else {
+      <div class="col-span-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="skeleton h-48 bg-gray-200 animate-pulse rounded-lg"></div>
+        <div class="skeleton h-48 bg-gray-200 animate-pulse rounded-lg"></div>
+        <div class="skeleton h-48 bg-gray-200 animate-pulse rounded-lg hidden lg:block"></div>
+      </div>
+    }
+  </div>
+</div>
