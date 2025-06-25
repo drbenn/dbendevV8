@@ -1,5 +1,5 @@
-<div class="fixed z-40 top-0 w-full border-b border-zinc-100 transition-colors duration-300 ease-in-out"
-      [ngClass]="{'bg-white/60 backdrop-blur-sm shadow-sm': scrollY > 15, 'bg-transparent': scrollY <= 15}">
+<div class="fixed z-40 top-0 w-full transition-colors duration-200 ease-in-out"
+      [ngClass]="{'bg-white/60 backdrop-blur-xs shadow-xs border-b border-zinc-100': scrollY > 15, 'bg-transparent': scrollY <= 15}">
   <div class="w-[90vw] sm:w-[90vw] md:w-[85vw] lg:w-[80vw] max-w-7xl mx-auto">
     <div class="flex justify-between items-center transition-all duration-300 ease-in-out" [ngClass]="{'h-7': scrollY > 15, 'h-16': scrollY <= 15}">
 
@@ -7,7 +7,7 @@
         <a href="#top" (click)="scrollToSection($event, '#top')"
             class="flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-full"
             aria-label="Back to top, Dan Bennett Home">
-          <div class="relative overflow-hidden flex-shrink-0 transition-all duration-300 ease-in-out" [ngClass]="{'w-8 h-8': scrollY > 15, 'w-12 h-12': scrollY <= 15}">
+          <!-- <div class="relative overflow-hidden flex-shrink-0 transition-all duration-300 ease-in-out" [ngClass]="{'w-8 h-8': scrollY > 15, 'w-12 h-12': scrollY <= 15}">
             <img 
               ngSrc="assets/icon/rocky.png"
               alt="Dan Bennett Dev logo - rocky head outline"
@@ -15,6 +15,9 @@
               height="36"
               priority
               class="absolute top-1/2 left-1/2 min-w-full min-h-full transform -translate-x-1/2 -translate-y-1/2" />
+          </div> -->
+          <div class="font-semibold text-base-content transition-all duration-300 ease-in-out" [ngClass]="{'text-base text-cyan-600': scrollY > 15, 'text-xl': scrollY <= 15}">
+            danbennett.dev
           </div>
         </a>
       </div>

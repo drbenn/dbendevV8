@@ -24,14 +24,14 @@
       </a>
     </h3>
   </div>
-  <p class="select-none text-lg leading-relaxed">{{ project.oneLine }}</p>
-  <div class="mt-2 text-lg">
+  <p class="select-none text-base leading-relaxed">{{ project.oneLine }}</p>
+  <div class="mt-2 text-base">
     <span class="font-semibold select-none">Tech:&nbsp;</span>
     <span class='select-none'>{{ project.tech.join(', ') }}</span>
   </div>
 
   @if (project.details && project.details.length > 0) {
-    <div class="hidden sm:flex flex-col select-none mt-5 mb-1 pl-5 list-disc list-inside">
+    <div class="hidden sm:flex flex-col select-none mt-2 mb-1 list-disc list-inside">
       <p class="font-semibold mb-2">Key Features:</p>
       <ul class="list-disc list-inside space-y-1">
         @for (detail of project.details; track detail) {
@@ -41,7 +41,7 @@
     </div>
   }
 
-  <div class="mt-2 flex gap-4">
+  <div class="my-6 flex gap-4">
     <a [href]="project.demoLink" target="_blank" rel="noopener noreferrer" class="link link-hover text-blue-500 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" [attr.aria-label]="'Link to demo for ' + project.title">Demo</a>
     
     @if (project.gitLink && project.gitLink.length > 0) {

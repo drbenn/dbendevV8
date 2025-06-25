@@ -21,6 +21,14 @@
 
   <!-- Main Content (shown after loading) -->
   @if (!isLoading) {
+
+      <!-- <div
+        class="absolute -translate-[192px] rounded-full bg-radial from-slate-500 via-transparent to-transparent" 
+        [ngStyle]="{'top': topPosition + 'px', 'left': leftPosition + 'px', 'width': bigDotWidth + 'px', 'height': bigDotHeight + 'px'}"
+        style="mix-blend-mode: soften;"
+        >
+      </div> -->
+
     <div class="flex flex-col flex-grow">
       <div id='top'></div> <!-- Anchor for "Home" navigation -->
       <app-navbar></app-navbar>
@@ -40,6 +48,14 @@
     
       <div id='contact'></div> <!-- Anchor for "Contact" navigation -->
       <app-footer></app-footer>
+
+      <!-- mouse cursor follower - over all items, crisp black with inversion -->
+      <div
+        class="absolute -translate-4 rounded-full bg-black invert z-100" 
+        [ngStyle]="{'top': topPosition + 'px', 'left': leftPosition + 'px', 'width': dotWidth + 'px', 'height': dotHeight + 'px'}"
+        style="mix-blend-mode: difference;"
+      >
+      </div>
 
     </div>
   }

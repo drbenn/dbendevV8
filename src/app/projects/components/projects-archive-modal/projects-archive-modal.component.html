@@ -3,8 +3,11 @@
   <div class="w-full">
     @if (allProjects$ | async; as allProjects) {
       @if (allProjects.length > 0) {
-        @for (item of allProjects; track item) {
+        @for (item of allProjects; track item; let last = $last) {
           <app-project-card [project]="item"></app-project-card>
+          @if (!last) {
+            <hr class="border-t border-gray-200 my-4">
+        }
         }
       }
       @else {

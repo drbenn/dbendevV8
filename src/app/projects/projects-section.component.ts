@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, ViewChild } from '@angular/core';
-import { FeaturedProjectsComponent } from '../featured-projects/featured-projects.component';
-import { ProjectsArchiveModalComponent } from '../projects-archive-modal/projects-archive-modal.component';
+import { FeaturedProjectsComponent } from './components/featured-projects/featured-projects.component';
+import { ProjectsArchiveModalComponent } from './components/projects-archive-modal/projects-archive-modal.component';
+
 
 @Component({
   selector: 'app-projects-section',

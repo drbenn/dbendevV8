@@ -1,4 +1,4 @@
-<section class="w-full py-28 md:py-16 lg:py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto" aria-labelledby="projectsSectionHeading">
+<section class="w-full py-32 md:py-38 lg:py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto" aria-labelledby="projectsSectionHeading">
   <h1 class="sr-only" id="projectsSectionHeading">
     My Projects
   </h1> 
@@ -15,9 +15,9 @@
     </button>
   </div>
 
-  <dialog id="projectsArchiveModal" class="modal" #projectsModal>
+  <dialog id="projectsArchiveModal" class="modal " #projectsModal>
     <div 
-      class="modal-box w-11/12 max-w-5xl h-screen-80 modal-bottom sm:modal-middle"
+      class="modal-box w-[100vw] sm:w-[90%] max-w-[100vw] h-[100vh] rounded-none"
       role="dialog"
       aria-modal="true"
       aria-labelledby="archiveModalTitle">
@@ -25,9 +25,10 @@
       @defer (on interaction(openModalButton); prefetch on hover(openModalButton)) {
         <app-projects-archive-modal></app-projects-archive-modal>
         <form method="dialog" class="modal-backdrop">
-          <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-                  (click)="closeModal()"
-                  aria-label="Close project archive modal">
+          <button 
+            class="btn btn-xs btn-circle absolute right-2 top-2"
+            (click)="closeModal()"
+            aria-label="Close project archive modal">
             ✕
           </button>
         </form>
