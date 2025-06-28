@@ -12,30 +12,30 @@
 /* Global CSS Variables (from your #root in App.css) */
 :root {
   /* Load Animations */
-  --load-anim-duration: 2.2s; /* Not directly used in the current setup, but kept for reference */
-  --simple-load-anim-duration: 0.7s; /* Not directly used, but the setTimeout matches this */
-  --load-drop-color-start: #364fc7; /* Not used in simple-intro-bg */
-  --load-drop-color-expand: #030a2b; /* Not used in simple-intro-bg */
-  --load-drop-intersectors: #fff; /* Not used in simple-intro-bg */
+  // --load-anim-duration: 2.2s; /* Not directly used in the current setup, but kept for reference */
+  // --simple-load-anim-duration: 0.7s; /* Not directly used, but the setTimeout matches this */
+  // --load-drop-color-start: #364fc7; /* Not used in simple-intro-bg */
+  // --load-drop-color-expand: #030a2b; /* Not used in simple-intro-bg */
+  // --load-drop-intersectors: #fff; /* Not used in simple-intro-bg */
   --load-finish-color: rgb(30, 30, 30); /* Used for simple-intro-bg */
 
   /* Navigation */
-  --navigation-top-bg-color: rgb(255, 255, 255); /* Not directly used due to Tailwind dynamic classes */
-  --navigation-body-bg-color: #bfc3d30f; /* Not directly used due to Tailwind dynamic classes */
-  --navbar-right-to-left-animation-speed: 0.35s; /* Not directly used */
+  // --navigation-top-bg-color: rgb(255, 255, 255); /* Not directly used due to Tailwind dynamic classes */
+  // --navigation-body-bg-color: #bfc3d30f; /* Not directly used due to Tailwind dynamic classes */
+  // --navbar-right-to-left-animation-speed: 0.35s; /* Not directly used */
 
   /* Light Mode */
-  --light-mode-bg: rgb(255, 255, 255);
-  --light-mode-primary-text: rgb(24, 24, 27); /* Adjusted to a dark grey for better contrast */
-  --light-mode-alt-text: rgb(30, 64, 175); /* Adjusted to a blue for links */
-  --light-mode-accent: #5c7cfa;
+  // --light-mode-bg: rgb(255, 255, 255);
+  // --light-mode-primary-text: rgb(24, 24, 27); /* Adjusted to a dark grey for better contrast */
+  // --light-mode-alt-text: rgb(30, 64, 175); /* Adjusted to a blue for links */
+  // --light-mode-accent: #5c7cfa;
 }
 
 body {
   /* Set as CPU mode var for light or dark */
-  background-color: var(--light-mode-bg);
+  // background-color: var(--light-mode-bg);
   /* Set as CPU mode var for light or dark */
-  color: var(--light-mode-primary-text);
+  // color: var(--light-mode-primary-text);
   margin: 0; /* Ensure no default body margin */
   font-family: 'Inter', sans-serif; /* Recommended font, assuming it's linked in index.html */
 }
@@ -46,16 +46,16 @@ body {
 }
 
 /* Global link styles */
-a {
-  font-weight: 500;
-  color: var(--light-mode-alt-text);
-  text-decoration: inherit;
-  transition: color 50ms ease-in, text-decoration 50ms ease-in; /* Explicitly transition color and text-decoration */
-}
+// a {
+//   font-weight: 500;
+//   color: var(--light-mode-alt-text);
+//   text-decoration: inherit;
+//   transition: color 50ms ease-in, text-decoration 50ms ease-in; /* Explicitly transition color and text-decoration */
+// }
 
 a:hover {
-  color: #364fc7; /* Specific hover color for global links */
-  text-decoration: underline;
+  // color: #364fc7; /* Specific hover color for global links */
+  // text-decoration: underline;
 }
 
 /* General accessibility for hidden content */

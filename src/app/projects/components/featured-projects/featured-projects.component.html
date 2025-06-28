@@ -8,12 +8,12 @@
         @for (item of featuredProjects; track item; let last = $last; let i = $index) {
           <app-project-card [project]="item"></app-project-card>
           @if (!last) {
-            <hr class="border-t border-gray-200 my-4">
+            <hr class="border-t border-2 border-primary-content my-4">
           }
         }
       }
       @else {
-        <p class="text-zinc-500">No featured projects available at the moment.</p>
+        <p class="">No featured projects available at the moment.</p>
       }
     }
     @else {

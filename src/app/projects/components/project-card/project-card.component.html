@@ -1,25 +1,9 @@
-<!-- <div class="project-card text-zinc-600 mb-6 last:mb-0">
-  <div class="text-xl font-bold mb-2 select-none">
-    <h3 class="text-xl"> <a [href]="project.demoLink" target="_blank" rel="noopener noreferrer" class="link link-hover text-zinc-700 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" [attr.aria-label]="'View demo for ' + project.title">
-        {{ project.title }}
-      </a>
-    </h3>
-  </div>
-  <p class="select-none text-lg leading-relaxed">{{ project.oneLine }}</p>
-  <div class="mt-2 text-lg">
-    <span class="font-semibold select-none">Tech:&nbsp;</span>
-    <span class='select-none'>{{ project.tech.join(', ') }}</span>
-  </div>
-  <div class="mt-2 flex gap-4">
-    <a [href]="project.demoLink" target="_blank" rel="noopener noreferrer" class="link link-hover text-blue-500 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" [attr.aria-label]="'Link to demo for ' + project.title">Demo</a>
-    <a [href]="project.gitLink" target="_blank" rel="noopener noreferrer" class="link link-hover text-blue-500 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" [attr.aria-label]="'Link to GitHub repository for ' + project.title">Git Repo</a>
-  </div>
-</div> -->
-
-<div class="project-card text-zinc-600 mb-6 last:mb-0">
+<div class="project-card mb-6 last:mb-0">
   <div class="text-xl font-bold mb-2 select-none">
     <h3 class="text-xl">
-      <a [href]="project.demoLink" target="_blank" rel="noopener noreferrer" class="link link-hover text-zinc-700 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" [attr.aria-label]="'View demo for ' + project.title">
+      <a 
+        [href]="project.demoLink" target="_blank" rel="noopener noreferrer" 
+        class="link link-hover text-primary visited:text-primary hover:text-secondary active:text-base-content focus:text-primary" [attr.aria-label]="'View demo for ' + project.title">
         {{ project.title }}
       </a>
     </h3>
@@ -42,14 +26,20 @@
   }
 
   <div class="my-6 flex gap-4">
-    <a [href]="project.demoLink" target="_blank" rel="noopener noreferrer" class="link link-hover text-blue-500 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" [attr.aria-label]="'Link to demo for ' + project.title">Demo</a>
+    <a [href]="project.demoLink" target="_blank" rel="noopener noreferrer" 
+      class="link link-hover text-base-content visited:text-base-content hover:text-primary active:text-base-content focus:text-primary" [attr.aria-label]="'Link to demo for ' + project.title">
+      Demo
+    </a>
     
     @if (project.gitLink && project.gitLink.length > 0) {
       @if ((isArray(project.gitLink) ? project.gitLink[0] : project.gitLink) === 'N/A') {
         <span class="text-amber-600 font-medium select-none">Git Repo Private</span>
       } 
       @else {
-        <a [href]="isArray(project.gitLink) ? project.gitLink[0] : project.gitLink" target="_blank" rel="noopener noreferrer" class="link link-hover text-blue-500 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" [attr.aria-label]="'Link to GitHub repository for ' + project.title">Git Repo</a>
+        <a [href]="isArray(project.gitLink) ? project.gitLink[0] : project.gitLink" target="_blank" rel="noopener noreferrer"
+          class="link link-hover text-base-content visited:text-base-content hover:text-primary active:text-base-content focus:text-primary" [attr.aria-label]="'Link to GitHub repository for ' + project.title">
+          Git Repo
+        </a>
       }
     }
 

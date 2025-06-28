@@ -1,5 +1,5 @@
 import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { AfterViewInit, Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, HostListener, OnDestroy, OnInit, Output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { gsap } from 'gsap'; // Import GSAP core
 import { ScrollToPlugin } from 'gsap/ScrollToPlugin'; // Import ScrollToPlugin
@@ -59,4 +59,19 @@ export class NavbarComponent implements OnInit, OnDestroy, AfterViewInit {
       drawerToggle.checked = false;
     }
   }
+
+  @Output('selectedTheme') updateTheme = new EventEmitter<'light' | 'dark'>();
+
+  protected isDarkMode: boolean = false;
+  activeTheme: string = 'light';         // default light theme
+  protected selectTheme(): void {
+    if (this.activeTheme === 'light') {
+      this.activeTheme = 'dark';           // dark theme
+      this.isDarkMode = true;
+    } else {
+      this.activeTheme = 'light';        // light theme
+      this.isDarkMode = false;
+    };
+    this.updateTheme.emit(this.isDarkMode ? 'dark' : 'light');
+  };
 }

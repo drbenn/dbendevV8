@@ -23,7 +23,7 @@
   @if (!isLoading) {
 
       <!-- <div
-        class="absolute -translate-[192px] rounded-full bg-radial from-slate-500 via-transparent to-transparent" 
+        class="absolute -translate-[192px] rounded-full bg-radial from-slate-500 via-transparent to-transparent pointer-events-none" 
         [ngStyle]="{'top': topPosition + 'px', 'left': leftPosition + 'px', 'width': bigDotWidth + 'px', 'height': bigDotHeight + 'px'}"
         style="mix-blend-mode: soften;"
         >
@@ -31,7 +31,7 @@
 
     <div class="flex flex-col flex-grow">
       <div id='top'></div> <!-- Anchor for "Home" navigation -->
-      <app-navbar></app-navbar>
+      <app-navbar (selectedTheme)="changeTheme($event)"></app-navbar>
   
       <!-- Main content area wrapper for responsiveness -->
       <div class="relative w-[90vw] sm:w-[90vw] md:w-[85vw] lg:w-[80vw] app-max-width mx-auto flex flex-col justify-start items-center">
@@ -51,7 +51,7 @@
 
       <!-- mouse cursor follower - over all items, crisp black with inversion -->
       <div
-        class="absolute -translate-4 rounded-full bg-black invert z-100" 
+        class="absolute -translate-4 rounded-full bg-black invert z-100 pointer-events-none" 
         [ngStyle]="{'top': topPosition + 'px', 'left': leftPosition + 'px', 'width': dotWidth + 'px', 'height': dotHeight + 'px'}"
         style="mix-blend-mode: difference;"
       >

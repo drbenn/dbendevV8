@@ -1,4 +1,4 @@
-<footer id="contact" class="w-full flex justify-center items-start mt-[100px] py-12 px-4 sm:px-6 lg:px-8 bg-gray-50 border-t border-slate-200" aria-labelledby="contactHeading">
+<footer id="contact" class="w-full flex justify-center items-start mt-[100px] py-12 px-4 sm:px-6 lg:px-8 bg-base-300 border-t border-slate-200" aria-labelledby="contactHeading">
   <div class="w-full max-w-4xl flex flex-col items-center">
     <h2 id="contactHeading" class="sr-only">Contact and Social Links</h2>
 
@@ -10,7 +10,7 @@
               [href]="contact.link"
               target="_blank"
               rel="noopener noreferrer"
-              class="link link-hover hover:text-blue-800"
+              class="link link-hover text-base-content visited:text-base-content hover:text-primary active:text-base-content focus:text-primary"
               [attr.aria-label]="'Visit ' + contact.title + ' profile'">
               {{ contact.title }}
             </a>
